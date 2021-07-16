@@ -270,7 +270,7 @@ class FsdEnv(gym.Env):
     def helper_reward_steps(self, observation, observation_prev, done):
         # Reward staying inside cones
         if not done:
-            reward = 100  # Alt 1: Change magnitude
+            reward = 1  # Alt 1: Change magnitude
         else:  # If shutdown (from leaving track) # Alt 3: Add negative reward for going out of track
             reward = 0
 

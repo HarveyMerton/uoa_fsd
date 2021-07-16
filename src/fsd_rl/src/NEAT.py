@@ -166,6 +166,9 @@ class Agent:
                 self._NodeGenes[n] = 0
         # for n in (self.percept_size,self.percept_size+self.out_size):
         #    self._NodeGenes[n] = 0
+
+        out = out/15
+        print("OUT: {}".format(out))
         return out
 
     def mutate_add_connection(self):
@@ -362,6 +365,7 @@ class NEAT:
 
     def normalize(self, x):
         # Softmax normalization e^x_i/sum(e^x_i)
+        print("Nat's X: {}".format(x))
         x = np.array(x)
         exp_sum = np.sum(np.exp(x))
         return np.exp(x) / exp_sum
@@ -574,7 +578,7 @@ if __name__ == "__main__":
     GlobalVar.ggt = GlobalGeneTable(percept_size, action_size)
 
     NUM_GAMES = 10000
-    POPSIZE = 2  # 100
+    POPSIZE = 100
     # Get initial population
     population = NEAT(percept_size, action_size, POPSIZE)
     # Roll out
@@ -629,7 +633,7 @@ if __name__ == "__main__":
                 if (neg_count > 100):
                     observation = env.reset()
                     break
-                env.render()
+                #env.render()
                 if done:
                     observation = env.reset()
                     break
