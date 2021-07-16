@@ -2,6 +2,7 @@ from tqdm import tqdm
 import numpy as np
 import torch
 import rospy
+import time
 
 from .buffer import Buffer
 
@@ -24,14 +25,13 @@ def add_random_noise(action, std):
     action += np.random.randn(*action.shape) * std
     return action.clip(-1.0, 1.0)
 
-def plot_results_rqt(cnt_episode, reward):
+def plot_results_rqt(cnt_episode, reward): #, pub_episode_cnt, pub_reward):
     # Tracking variables and publishers
     pub_episode_cnt = rospy.Publisher('/algo/tracking/episode_cnt', Int32, queue_size=10)
     pub_reward = rospy.Publisher('/algo/tracking/episode_reward_total', Int32, queue_size=10)
 
     # Publish episode information - for graphing.
     # For loop so rqt-multiplot can pick up
-    # r = rospy.Rate(100)
     for _ in range(100):
         cnt_episode_out = Int32()  # Episode/game/generation counter
         cnt_episode_out.data = cnt_episode
@@ -40,8 +40,6 @@ def plot_results_rqt(cnt_episode, reward):
         reward_pub = Int32()  # Reward from this generation
         reward_pub.data = reward
         pub_reward.publish(reward_pub)
-
-        # r.sleep()
 
 def collect_demo(env, sac_expert, algo, buffer_size, device, std, p_rand, seed=0):
     env.seed(seed)

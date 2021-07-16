@@ -10,6 +10,9 @@ from ..utils import soft_update, disable_gradient, plot_results_rqt
 from ..network import (
     StateDependentPolicy, TwinnedStateActionFunction
 )
+from std_msgs.msg import Int32
+from gazebo_connection import GazeboConnection
+
 
 class SAC(Algorithm):
 
@@ -67,8 +70,12 @@ class SAC(Algorithm):
         self.start_steps = start_steps
         self.tau = tau
 
-        # Tracking variables
+        # Tracking variables and publishers
+        #self.pub_episode_cnt = rospy.Publisher('/algo/tracking/episode_cnt', Int32, queue_size=10)
+        #self.pub_reward = rospy.Publisher('/algo/tracking/episode_reward_total', Int32, queue_size=10)
+
         self.cnt_episode_reward = self.cnt_episode = 0
+        self.gazebo = GazeboConnection()
 
     def is_update(self, steps):
         return steps >= max(self.start_steps, self.batch_size)

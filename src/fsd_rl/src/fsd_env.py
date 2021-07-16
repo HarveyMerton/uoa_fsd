@@ -41,7 +41,7 @@ THROTTLE_START_TIME = 3.0  # Time to accelerate for
 THROTTLE_SET = float(0.037)  # Set throttle position
 NUM_CONES = 3  # Number of cones of each colour stored and used
 RANGE = 10  # Range of cameras
-STEER_ANG_MIN = -1 # Try change to 0.4 & -0.4
+STEER_ANG_MIN = -1  # Try change to 0.4 & -0.4
 STEER_ANG_MAX = 1
 
 #IDENT_BLUE = 1  # Identifiers for blue and yellow cones
@@ -200,7 +200,7 @@ class FsdEnv(gym.Env):
             done = True
 
         # Calculate reward
-        reward = self.helper_reward_steps(done)  # Reward for number of steps inside cones
+        reward = self.helper_reward_steps(observation, observation_prev, done)  # Reward for number of steps inside cones
         # reward = self.helper_reward_dist_local(observation_prev, done)  # Reward for moving to correct point
 
         return reward, done
@@ -268,8 +268,6 @@ class FsdEnv(gym.Env):
     ## REWARD FXNS ##
     # Reward for time spent inside cones - more time = higher reward
     def helper_reward_steps(self, observation, observation_prev, done):
-        SCALE_ANG = 10
-
         # Reward staying inside cones
         if not done:
             reward = 100  # Alt 1: Change magnitude
@@ -279,14 +277,13 @@ class FsdEnv(gym.Env):
         # Alt 2: Add modification that rewards small steering angles (for smoothness)
         # NOTE: CHANGE SCALE_ANG BASED ON SELECTED REWARD MAGNITUDE ABOVE!!!!
         # (want reward to be less than reward for staying inside cones)
-        ang_diff = abs(observation["steering_angle"] - observation_prev["steering_angle"])
-
-        if ang_diff == 0:
-            reward += SCALE_ANG
-        else:
-            reward += SCALE_ANG/ang_diff
-
-        #reward += /
+        # SCALE_ANG = 100
+        # ang_diff = (abs(observation["steering_angle"] - observation_prev["steering_angle"]))*100
+        # print("ANG DIFF: {}".format(ang_diff))
+        # if ang_diff <= 1:
+        #     reward += SCALE_ANG
+        # else:
+        #     reward += SCALE_ANG/ang_diff
 
         # Alt 4: Add reward modification for action that keeps vehicle in track
         # NOTE: CHANGE MAGNITUDE BASED ON SELECTED REWARD MAGNITUDE ABOVE!!!!

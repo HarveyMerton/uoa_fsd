@@ -1,6 +1,7 @@
 build
 devel
-logs
+/logs
 .catkin_tools
 .idea
+*.pyc
 
