@@ -89,7 +89,7 @@ if __name__ == '__main__':
     # default, num_steps_ip, eval_interval_ip, env_id_ip, cuda_ip, seed_ip
     # ORIG params:
     # train_expert_init(False, 15, 5, 'Fsd-v0', False, 0)  # Short test
-    train_expert_init(False, 10 ** 6, 10 ** 4, 'Fsd-v0', False, 0)  # Long test
+    # train_expert_init(False, 10 ** 6, 10 ** 4, 'Fsd-v0', False, 0)  # Long test
 
     # Collect expert demonstrations
     # default, sac_expert, weight_ip (expert weights for SAC), env_id_ip, buffer_size_ip, std_ip, p_rand_ip, cuda_ip, seed_ip
@@ -100,7 +100,7 @@ if __name__ == '__main__':
     # Train AIRL inverse reinforcement learning
     # default, buffer, rollout_length (2000 for Inv.P and 50000 for HOPPER), num_steps, eval_interval, env_id, algo, cuda, seed
     # ORIG params: size2000
-    #train_immitation_init(False, 'buffers/Fsd-v0/size15_std0.0_prand0.0.pth', 50000, 100000, 5000, 'Fsd-v0', 'airl', False, 0)
+    train_immitation_init(False, 'buffers/Fsd-v0/size15_std0.0_prand0.0.pth', 50000, 100000, 5000, 'Fsd-v0', 'airl', False, 0)
 
     print("End")
 

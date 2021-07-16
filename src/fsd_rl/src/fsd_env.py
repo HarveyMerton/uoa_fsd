@@ -41,8 +41,8 @@ THROTTLE_START_TIME = 3.0  # Time to accelerate for
 THROTTLE_SET = float(0.037)  # Set throttle position
 NUM_CONES = 3  # Number of cones of each colour stored and used
 RANGE = 10  # Range of cameras
-STEER_ANG_MIN = -0.4
-STEER_ANG_MAX = 0.4
+STEER_ANG_MIN = -1 # Try change to 0.4 & -0.4
+STEER_ANG_MAX = 1
 
 #IDENT_BLUE = 1  # Identifiers for blue and yellow cones
 #IDENT_YELLOW = -1
@@ -200,8 +200,8 @@ class FsdEnv(gym.Env):
             done = True
 
         # Calculate reward
-        # reward = self.helper_reward_steps(done)  # Reward for number of steps inside cones
-        reward = self.helper_reward_dist_local(observation_prev, done)  # Reward for moving to correct point
+        reward = self.helper_reward_steps(done)  # Reward for number of steps inside cones
+        # reward = self.helper_reward_dist_local(observation_prev, done)  # Reward for moving to correct point
 
         return reward, done
 
@@ -267,14 +267,29 @@ class FsdEnv(gym.Env):
 
     ## REWARD FXNS ##
     # Reward for time spent inside cones - more time = higher reward
-    def helper_reward_steps(self, done):
+    def helper_reward_steps(self, observation, observation_prev, done):
+        SCALE_ANG = 10
+
         # Reward staying inside cones
         if not done:
-            reward = 1
-        else:  # If shutdown (from leaving track), large negative reward?
+            reward = 100  # Alt 1: Change magnitude
+        else:  # If shutdown (from leaving track) # Alt 3: Add negative reward for going out of track
             reward = 0
 
-        # Add reward modification for action that keeps vehicle in track
+        # Alt 2: Add modification that rewards small steering angles (for smoothness)
+        # NOTE: CHANGE SCALE_ANG BASED ON SELECTED REWARD MAGNITUDE ABOVE!!!!
+        # (want reward to be less than reward for staying inside cones)
+        ang_diff = abs(observation["steering_angle"] - observation_prev["steering_angle"])
+
+        if ang_diff == 0:
+            reward += SCALE_ANG
+        else:
+            reward += SCALE_ANG/ang_diff
+
+        reward += /
+
+        # Alt 4: Add reward modification for action that keeps vehicle in track
+        # NOTE: CHANGE MAGNITUDE BASED ON SELECTED REWARD MAGNITUDE ABOVE!!!!
         # Add no modification if this is the first observation
         # if len(self.observation_prev["cones_yellow"]) == 0:
 
@@ -282,7 +297,7 @@ class FsdEnv(gym.Env):
 
         # Find distance to right set of cones
 
-        # Add modification that rewards small steering angles (for smoothness)
+
 
         return reward
 
