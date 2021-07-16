@@ -286,7 +286,7 @@ class FsdEnv(gym.Env):
         else:
             reward += SCALE_ANG/ang_diff
 
-        reward += /
+        #reward += /
 
         # Alt 4: Add reward modification for action that keeps vehicle in track
         # NOTE: CHANGE MAGNITUDE BASED ON SELECTED REWARD MAGNITUDE ABOVE!!!!
