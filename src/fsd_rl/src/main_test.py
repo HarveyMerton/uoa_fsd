@@ -89,7 +89,7 @@ if __name__ == '__main__':
     # default, num_steps_ip, eval_interval_ip, env_id_ip, cuda_ip, seed_ip
     # ORIG params:
     # train_expert_init(False, 15, 5, 'Fsd-v0', False, 0)  # Short test
-    # train_expert_init(False, 10 ** 6, 10 ** 4, 'Fsd-v0', False, 0)  # Long test
+    train_expert_init(False, 10 ** 6, 10 ** 4, 'Fsd-v0', False, 0)  # Long test
 
     # Collect expert demonstrations
     # default, sac_expert, weight_ip (expert weights for SAC), env_id_ip, buffer_size_ip, std_ip, p_rand_ip, cuda_ip, seed_ip
