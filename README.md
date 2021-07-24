@@ -1,10 +1,5 @@
-# FS Driverless 2019
+Code to accompany Harvey Merton and Thomas Delamore's final year research project at UoA (see: XXX #paper location#). This code is built off various repositories but mostly the FSSIM and fsd_skeleton repositories by AMZ Driverless. This README file is based off the README in the later repository as this repository forms the higher-level structure of the workspace.
 
-This is a skeleton repository for the autonomous code of a driverless FS race car. This README contains some information to get you started.
-
-The use of **Ubuntu 16.04 and ROS Kinetic** is assumed everywhere on this repository.
-
-This repository contains a framework for the architecture of an autonomous FS race car, with basic dummy nodes to illustrate how to organise code. Some helpful tools are also included.
 
 # Repository organisation
 
@@ -61,20 +56,22 @@ Look at`fsd_aliases` to see full list, or add more custom aliases.
 
 # Setting up the Workspace
 **1 Clone the repository:**
-
 ```
 cd ~
-git clone git@github.com:AMZ-Driverless/fsd_skeleton.git
+git clone 
 ```
 **2 Install dependencies**
 ```
-cd ~/fsd_skeleton
+cd ~/uoa_fsd
 ./update_dependencies.sh
 ```
+Add extra dependencies: 
+pip install -r requirements.txt
+
 
 **3 Build workspace**
 ```
-cd ~/fsd_skeleton
+cd ~/uoa_fsd
 catkin build
 ```
 
@@ -86,23 +83,22 @@ FSD_source
 ```
 Else,
 ```
-cd ~/fsd_skeleton
-source fsd_environment.sh
+cd ~/uoa_fsd
+source devel/setup.bash
 ```
+
+TIP: to avoid having to source the workspace upon every terminal launch, add 'source devel/setup.bash' to the .bashrc file (hidden file located in ~/ directory)
 
 **5 Test setup**
 ```
-roslaunch fsd_common_meta trackdrive.launch
+roslaunch fssim_interface fssim.launch
 ```
 in new terminal
 ```
-rqt_graph
+roslaunch fsd_common_meta trackdrive.launch
 ```
-You should see all the nodes int the pipeline running
+You should see the FSSIM open and a green line appear on the track to mark the trajectory. If the sim is setup for pure pursuit, the vehicle will follow the green line.
 - - - -
-
-# Run the workspace with FSSIM
-* see https://github.com/AMZ-Driverless/fssim#combine-it-with-simple-fsd-skeleton-framework-and-drive-a-lap
 
 # Conventions
 - - - -
@@ -144,7 +140,4 @@ Markdown syntax (https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatshee
 
 # Future improvements
 
-* Better dependency management example and documentation
-* Jenkins setup
-* RVIZ setup
-* ...
+* Update to Python3, ROS Noetic and Ubuntu Bionic

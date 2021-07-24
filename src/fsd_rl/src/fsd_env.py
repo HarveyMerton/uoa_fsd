@@ -200,8 +200,8 @@ class FsdEnv(gym.Env):
             done = True
 
         # Calculate reward
-        reward = self.helper_reward_steps(observation, observation_prev, done)  # Reward for number of steps inside cones
-        # reward = self.helper_reward_dist_local(observation_prev, done)  # Reward for moving to correct point
+        #reward = self.helper_reward_steps(observation, observation_prev, done)  # Reward for number of steps inside cones
+        reward = self.helper_reward_dist_local(observation_prev, done)  # Reward for moving to correct point
 
         return reward, done
 
