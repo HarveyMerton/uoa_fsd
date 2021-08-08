@@ -49,24 +49,33 @@ STEER_ANG_MAX = 1
 
 class FsdEnv(gym.Env):
 
-    def __init__(self):
-        # Subscribers
-        rospy.Subscriber('/control/pure_pursuit/control_command', ControlCommand, self.callback_cmd)  # Control command
-        rospy.Subscriber('/fssim/res_state', ResState, self.callback_res_state)  # Vehicle OK?
-        rospy.Subscriber('/fssim/stat_lap_count', Int16, self.callback_lap)  # Lap counter
-        rospy.Subscriber('/camera/cones', PointCloud2, self.callback_cones)  # Cone locations
-        #rospy.Subscriber('/initialpose', PoseWithCovarianceStamped, self.callback_init_pose)  # Initial pose
+    def __init__(self, simulated=False):
+        if simulated:  # Set up simulated environment
+            # Subscribers
+            rospy.Subscriber('/control/pure_pursuit/control_command', ControlCommand, self.callback_cmd)  # Control command
+            rospy.Subscriber('/fssim/res_state', ResState, self.callback_res_state)  # Vehicle OK?
+            rospy.Subscriber('/fssim/stat_lap_count', Int16, self.callback_lap)  # Lap counter
+            rospy.Subscriber('/camera/cones', PointCloud2, self.callback_cones)  # Cone locations
+            #rospy.Subscriber('/initialpose', PoseWithCovarianceStamped, self.callback_init_pose)  # Initial pose
 
-        # Publishers
-        # Control command
-        self.cmd_airl = rospy.Publisher('/control/pure_pursuit/control_command', ControlCommand, queue_size=5)
+            # Publishers
+            # Control command
+            self.cmd_airl = rospy.Publisher('/control/pure_pursuit/control_command', ControlCommand, queue_size=5)
+
+            # Establish connection with simulator
+            self.gazebo = GazeboConnection()
+            rospy.set_param('/use_sim_time', 'true')
+        else:  # Set up physical environment
+            # TODO: Complete subscribers
+            # Subscribers
+            #rospy.Subscriber('aruco_detector', ,self.callback_cones_physical) # Cone positions - SERVICE
+            #rospy.Subscriber('/control/physical/steering_ang', , self.callback_steering_physical)  # Steering angle (Need linked/timed service??)
+
+            # Control command
+            self.cmd_phys = rospy.Publisher('/control/pure_pursuit/control_command', ControlCommand, queue_size=5)
 
         # gets training parameters from param server
         self.running_step = rospy.get_param("/running_step")
-
-        # Establish connection with simulator
-        self.gazebo = GazeboConnection()
-        rospy.set_param('/use_sim_time', 'true')
 
         # Define observation and action spaces
         # Observation space
@@ -97,8 +106,13 @@ class FsdEnv(gym.Env):
 
         # Set tracking instance variables
         self.np_random = self.cnt_step = self.cnt_lap = self.shutdown = 0  # Tracking variables
-        self.obs_cmd = self.obs_cones = None  # Last "observed" command and cone positions
         self.observation_prev = None
+
+        # Simulation-only vars
+        self.obs_cmd = self.obs_cones = None  # Last "observed" command and cone positions
+
+        # Physical-only vars
+        self.phys_sa = self.phys_cones = None # Last "observed" command and cone positions
 
         self.helper_reset_vars()
 
@@ -107,9 +121,21 @@ class FsdEnv(gym.Env):
     def callback_cmd(self, data_cmd):
         self.obs_cmd = data_cmd
 
+    # TODO: Implement physical s.a. callback
+    def callback_phys_sa(self, data_sa):
+        # Process input to make equivalent to simulation
+
+        self.phys_sa = data_sa
+
     # Stores current cone locations
     def callback_cones(self, data_pt_cloud):
         self.obs_cones = list(point_cloud2.read_points(data_pt_cloud, skip_nans=True, field_names=("x", "y", "probability_blue", "probability_yellow", "probability_orange", "probability_other")))
+
+    #TODO: Implement physical cones callback
+    def callback_phys_cones(self, data_cones):
+        # Process input to make equivalent to simulation
+
+        self.phys_cones = data_cones
 
     # Stores shutdown state
     def callback_res_state(self, data_res_state):
