@@ -14,17 +14,18 @@ def run(args):
     env = make_env(args.env_id)
     env_test = make_env(args.env_id)
 
+    time = datetime.now().strftime("%Y%m%d-%H%M")
+    dirname = os.path.dirname(__file__)
+    log_dir = os.path.join(dirname,
+                           'logs', args.env_id, 'sac', "seed{}-{}".format(args.seed, time))
     algo = SAC(
         state_shape=env.observation_space.shape,
         action_shape=env.action_space.shape,
         device=torch.device("cuda" if args.cuda else "cpu"),
-        seed=args.seed
+        seed=args.seed,
+        max_steps=args.num_steps,
+        log_dir=log_dir
     )
-
-    time = datetime.now().strftime("%Y%m%d-%H%M")
-    dirname = os.path.dirname(__file__)
-    log_dir = os.path.join(dirname,
-        'logs', args.env_id, 'sac', "seed{}-{}".format(args.seed, time))
 
     trainer = Trainer(
         env=env,

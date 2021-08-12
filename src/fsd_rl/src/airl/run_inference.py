@@ -6,7 +6,7 @@ import rospy
 
 from datetime import datetime
 
-from gail_airl_ppo.utils import PPExpert
+from gail_airl_ppo.utils import PPExpert, log_make
 from gail_airl_ppo.env import make_env
 from gail_airl_ppo.algo import SACExpert
 
@@ -27,7 +27,8 @@ def run(args):
         algo = False
 
     # Create logfile
-    file_log = open(log_make(args), "a")
+    file_log = open(log_make_inference(args), "a")
+    file_log.writelines(['Step_num', ' ', 'Done_flag', ' ', 'Time_total', ' ', 'Action', ' ', 'Action_expert', '\n'])
 
     # Set variables
     cnt_step = 0  # Time step counter
@@ -70,23 +71,15 @@ def run(args):
         if done:
             break
 
-        file_log.close()
+    file_log.close()
+    print("Written to logfile at: {}".format(file_log))
 
-def log_make(args):
+def log_make_inference(args):
     # Log file setup
     dirname = os.path.dirname(__file__)
     rel_path = 'logs/{}/inference/'.format(args.env_id)
 
-    environment = 'sim' if (args.sim == True) else 'real'
-    time = datetime.now().strftime("%Y%m%d-%H%M")
-    filename = r'inferenceLog_{}_{}_{}_{}.txt'.format(environment, args.algo,
-                                                      os.path.splitext(os.path.basename(args.weight))[0], time)
-    file_path_name = os.path.join(dirname, rel_path, filename)
-
-    # Make directory
-    filepath = os.path.dirname(file_path_name)
-    if not os.path.exists(filepath):
-        os.makedirs(filepath)
+    file_path_name = log_make(dirname, rel_path, 'logInference', args.sim, args.algo, os.path.splitext(os.path.basename(args.weight))[0])
 
     return file_path_name
 
