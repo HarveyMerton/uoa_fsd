@@ -5,7 +5,7 @@ from torch.optim import Adam
 from .base import Algorithm
 from ..buffer import RolloutBuffer
 from ..network import StateIndependentPolicy, StateFunction
-from ..utils import plot_results_rqt
+from ..utils import plot_save_training, log_open_training
 
 
 def calculate_gae(values, rewards, dones, next_values, gamma, lambd):
@@ -24,7 +24,7 @@ def calculate_gae(values, rewards, dones, next_values, gamma, lambd):
 
 class PPO(Algorithm):
 
-    def __init__(self, state_shape, action_shape, device, seed, gamma=0.995,
+    def __init__(self, state_shape, action_shape, device, seed, max_steps=None, log_dir=None, gamma=0.995,
                  rollout_length=2048, mix_buffer=20, lr_actor=3e-4,
                  lr_critic=3e-4, units_actor=(64, 64), units_critic=(64, 64),
                  epoch_ppo=10, clip_eps=0.2, lambd=0.97, coef_ent=0.0,
@@ -69,6 +69,17 @@ class PPO(Algorithm):
         # Tracking variables
         self.cnt_episode_reward = self.cnt_episode = 0
 
+        # Logging - open log file
+        self.log_file = log_open_training(log_dir, max_steps)
+
+    # Destructor to close logfile
+    def __del__(self):
+        try:
+            self.log_file.close()
+            print("Written to logfile at: {}".format(self.log_file))
+        except:
+            pass
+
     def is_update(self, step):
         return step % self.rollout_length == 0
 
@@ -90,7 +101,7 @@ class PPO(Algorithm):
             self.cnt_episode += 1
 
             # Graph episode information
-            plot_results_rqt(self.cnt_episode, self.cnt_episode_reward)
+            plot_save_training(self.log_file, self.cnt_episode, step, self.cnt_episode_reward)
 
             self.cnt_episode_reward = 0
 

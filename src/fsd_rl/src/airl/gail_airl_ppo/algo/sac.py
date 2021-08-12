@@ -6,7 +6,7 @@ import rospy
 
 from .base import Algorithm
 from ..buffer import Buffer
-from ..utils import soft_update, disable_gradient, plot_results_rqt
+from ..utils import soft_update, disable_gradient, plot_save_training, log_open_training
 from ..network import (
     StateDependentPolicy, TwinnedStateActionFunction
 )
@@ -16,7 +16,7 @@ from gazebo_connection import GazeboConnection
 
 class SAC(Algorithm):
 
-    def __init__(self, state_shape, action_shape, device, seed, gamma=0.99,
+    def __init__(self, state_shape, action_shape, device, seed, max_steps=None, log_dir=None, gamma=0.99,
                  batch_size=256, buffer_size=10**6, lr_actor=3e-4,
                  lr_critic=3e-4, lr_alpha=3e-4, units_actor=(256, 256),
                  units_critic=(256, 256), start_steps=10000, tau=5e-3):
@@ -71,11 +71,19 @@ class SAC(Algorithm):
         self.tau = tau
 
         # Tracking variables and publishers
-        #self.pub_episode_cnt = rospy.Publisher('/algo/tracking/episode_cnt', Int32, queue_size=10)
-        #self.pub_reward = rospy.Publisher('/algo/tracking/episode_reward_total', Int32, queue_size=10)
-
         self.cnt_episode_reward = self.cnt_episode = 0
         self.gazebo = GazeboConnection()
+
+        # Logging - open log file
+        self.log_file = log_open_training(log_dir, max_steps)
+
+    # Destructor to close logfile
+    def __del__(self):
+        try:
+            self.log_file.close()
+            print("Written to logfile at: {}".format(self.log_file))
+        except:
+            pass
 
     def is_update(self, steps):
         return steps >= max(self.start_steps, self.batch_size)
@@ -102,7 +110,7 @@ class SAC(Algorithm):
             self.cnt_episode += 1
 
             # Graph episode information
-            plot_results_rqt(self.cnt_episode, self.cnt_episode_reward)
+            plot_save_training(self.log_file, self.cnt_episode, step, self.cnt_episode_reward)
 
             self.cnt_episode_reward = 0
 

@@ -15,4 +15,4 @@
 #max_altitude: 2.0   # in meters
 #max_incl: 0.7       # in rads
 #speed_value: 1.0    # in m/s
-running_step: 0.5 #0.3   # in seconds
+running_step: 0.1 #0.3   # in seconds
