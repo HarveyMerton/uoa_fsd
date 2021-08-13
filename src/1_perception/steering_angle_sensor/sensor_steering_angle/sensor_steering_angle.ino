@@ -1,5 +1,8 @@
-// sudo chmod a+rw /dev/ttyACM0
 //SETUP: http://wiki.ros.org/rosserial_arduino/Tutorials/Arduino%20IDE%20Setup
+
+// Running: 
+// 1. New terminal: sudo chmod a+rw /dev/ttyACM0
+// (cannot have serial monitor open)
 
 // RUN ON PC SIDE
 //rosrun rosserial_python serial_node.py /dev/ttyACM0 _baud:=115200
@@ -10,7 +13,7 @@
 
 #include <ros.h>
 #include <std_msgs/Float32.h>
-//#include <fsd_common_msgs/msg/ControlCommand.msg>
+//#include <ros_custom_msgs/ControlCommand.h>
 
 //I2C pins:
 //STM32: SDA: PB7 SCL: PB6
@@ -18,15 +21,16 @@
 
 //---------------------------------------------------------------------------
 // Function prototypes
-float callback_sa_desired();
+void callback_sa_desired(const std_msgs::Float32 &msg);
 //void checkMagnetPresence();
 
 /* ROS CONNECTION */
 ros::NodeHandle nh; //Node
 std_msgs::Float32 sa_msg; //Steering angle message
+//fsd_common_msgs::ControlCommand sa_msg; //Steering angle message
 
-ros::Publisher sa_phys_pub("/steering/norm_ang", &sa_msg);
-//ros::Subscriber<std_msgs::Float32> sa_desired_sub("/control/pure_pursuit/control_command", &callback_sa_desired);
+ros::Publisher sa_phys_pub("/physical/steering/norm_ang", &sa_msg);
+ros::Subscriber<std_msgs::Float32> sa_desired_sub("/control/steering/norm_ang", &callback_sa_desired);
 
 
 /* GLOBAL VARS */
@@ -90,7 +94,7 @@ void loop()
 }
 
 // Callbacks
-void callback_sa_desired(const std_msgs::Float32& msg) {
+void callback_sa_desired(const std_msgs::Float32 &msg) {
   desiredAng = msg.data;
 }
 

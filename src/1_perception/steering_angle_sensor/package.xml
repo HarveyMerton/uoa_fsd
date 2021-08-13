@@ -11,8 +11,12 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <!--TODO: Add the packages you want to build-->
-  <!--<depend>lidar_cone_detector</depend>-->
-  <!--<depend>vision_cone_detector</depend>-->
+  <!--For custom message import-->
+  <depend>fsd_common_msgs</depend>
+
+  <!--Other depends-->
+  <depend>roscpp</depend>
+  <depend>std_msgs</depend>
 
   <export>
   </export>

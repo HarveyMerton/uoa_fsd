@@ -143,23 +143,3 @@ def collect_demo(env, sac_expert, algo, buffer_size, device, std, p_rand, seed=0
     mean_reward = total_return / num_episodes
     print('Mean return of the expert is %f' % mean_reward)
     return buffer
-
-
-# Pure pursuit expert
-class PPExpert():
-    def __init__(self):
-        # Subscribe to pure pursuit expert
-        rospy.Subscriber('/control/pure_pursuit/control_command_expert', ControlCommand, self.callback_cmd)
-
-        # Set instance variables for tracking
-        self.obs_cmd = ControlCommand()
-
-    ### CALLBACKS ###
-    # Stores the current command sent
-    def callback_cmd(self, data_cmd):
-        self.obs_cmd = data_cmd
-
-    ### FUNCTIONS ###
-    def get_expert_action(self):
-        return np.array([self.obs_cmd.steering_angle.data])
-

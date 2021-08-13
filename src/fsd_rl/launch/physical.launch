@@ -7,6 +7,17 @@
 -->
 
 <launch>
-    <!-- Launch steering angle node -->
-    <node pkg="fsd_rl" name="gym_train_fsd" type="main_test.py" output="screen"/>
+    <!-- Launch steering angle sensing node (reset Arduino) -->
+
+    <!-- Load the parameters for the algorithm -->
+    <rosparam command="load" file="$(find fsd_rl)/config/airl_params.yaml" />
+
+    <!-- Launch a file currently testing -->
+    <node pkg="fsd_rl" name="physical_main" type="main_physical.py" output="screen"/>
+
+    <!-- Launch serial receiver -->
+    <node name="serial_node"        pkg="rosserial_python"      type="serial_node.py">
+    <param name="port"              type="string"               value="/dev/ttyACM0"/>
+    <param name="baud"              type="int"                  value="115200"/>
+    </node>
 </launch>
