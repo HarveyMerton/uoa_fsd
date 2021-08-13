@@ -7,13 +7,6 @@
 -->
 
 <launch>
-    <!-- Launch simulator (Do first and separately) -->
-    <!-- <include file="$(find fssim_interface)/launch/fssim.launch" /> -->
-
-    <!-- Load the parameters for the algorithm -->
-    <rosparam command="load" file="$(find fsd_rl)/config/airl_params.yaml" />
-
-    <!-- Launch a file currently testing -->
+    <!-- Launch steering angle node -->
     <node pkg="fsd_rl" name="gym_train_fsd" type="main_test.py" output="screen"/>
-    <!--<node pkg="fsd_rl" name="gym_train_fsd" type="NEAT.py" output="screen"/>-->
 </launch>
