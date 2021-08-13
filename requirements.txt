@@ -7,3 +7,6 @@ shapely==1.7.1
 tensorboard==2.1.0
 torch==1.4.0
 tqdm==4.61.2
+
+#ros-melodic-rosserial
+#pyserial

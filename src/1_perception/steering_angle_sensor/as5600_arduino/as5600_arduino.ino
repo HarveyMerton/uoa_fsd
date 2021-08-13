@@ -1,14 +1,41 @@
+// sudo chmod a+rw /dev/ttyACM0
+//SETUP: http://wiki.ros.org/rosserial_arduino/Tutorials/Arduino%20IDE%20Setup
+
+// RUN ON PC SIDE
+//rosrun rosserial_python serial_node.py /dev/ttyACM0 _baud:=115200
+
+
+
 #include <Wire.h> //This is for i2C
+
+#include <ros.h>
+#include <std_msgs/Float32.h>
+//#include <fsd_common_msgs/msg/ControlCommand.msg>
 
 //I2C pins:
 //STM32: SDA: PB7 SCL: PB6
 //Arduino: SDA: A4 SCL: A5
 
 //---------------------------------------------------------------------------
-//P4P Stuff:
-int directionMultiplier = 1;
+// Function prototypes
+float callback_sa_desired();
+//void checkMagnetPresence();
 
-//Magnetic sensor things
+/* ROS CONNECTION */
+ros::NodeHandle nh; //Node
+std_msgs::Float32 sa_msg; //Steering angle message
+
+ros::Publisher sa_phys_pub("/steering/norm_ang", &sa_msg);
+//ros::Subscriber<std_msgs::Float32> sa_desired_sub("/control/pure_pursuit/control_command", &callback_sa_desired);
+
+
+/* GLOBAL VARS */
+// Tracking desired angle
+float desiredAng = 0.0;
+
+// Tracking physical angle
+int directionMultiplier = 1; // For changing the sign of left/right turns
+
 int magnetStatus = 0; //value of the status register (MD, ML, MH)
 
 int lowbyte; //raw angle 7:0
@@ -23,32 +50,68 @@ float startAngle = 0; //starting angle
 float totalAngle = 0; //total absolute angular displacement
 float previoustotalAngle = 0; //for the display printing
 
-float normAngle = 0; // Our normalised steering angle
+float normAngle = 0; // Normalised steering angle between -1 and 1
+
 
 void setup()
 {
+  // ROS node setup
+  nh.initNode();
+  nh.advertise(sa_phys_pub);
+  //nh.subscribe(sa_desired_sub);
+  
+  // Communication with sa sensor
   Serial.begin(115200); //start serial - tip: don't use serial if you don't need it (speed considerations) (not needed if no computer used)
   Wire.begin(); //start i2C  
   Wire.setClock(800000L); //fast clock
-  //Serial.println("setup");
+  
   checkMagnetPresence(); //check the magnet (blocks until magnet is found)
 
+  // Sa setup
   ReadRawAngle(); //make a reading so the degAngle gets updated
   startAngle = degAngle; //update startAngle with degAngle - for taring
-  //Serial.println(startAngle);
-  //delay(10000);
+  //delay(1000);
 }
 
 void loop()
 {    
-   ReadRawAngle(); //ask the value from the sensor 
-   correctAngle(); //tare the value
-   checkQuadrant(); //check quadrant, check rotations, check absolute angular position
+   // Desired steering angle
+   
+   
+   // Physical steering angle
+   publishPhysAng();
 
-   normalAngle();
-    delay(100); //wait a little - adjust it for "better resolution"
+   // Update screen
+   
+   
+   nh.spinOnce();
+   delay(100); //wait a little - adjust it for "better resolution"
 
 }
+
+// Callbacks
+void callback_sa_desired(const std_msgs::Float32& msg) {
+  desiredAng = msg.data;
+}
+
+
+//Helper functions
+void publishPhysAng(){ 
+  // Find physical steering angle
+  ReadRawAngle(); //ask the value from the sensor 
+  //correctAngle(); //tare the value
+  //checkQuadrant(); //check quadrant, check rotations, check absolute angular position
+  
+  normalAngle(); // Normalise angle
+  
+  // Publish physical steering angle
+  sa_msg.data = normAngle; 
+  Serial.println("publishing");
+  sa_phys_pub.publish(&sa_msg);
+  
+}
+
+
 
 void ReadRawAngle()
 { 
@@ -177,7 +240,6 @@ void checkQuadrant()
 void checkMagnetPresence()
 {  
   //This function runs in the setup() and it locks the MCU until the magnet is not positioned properly
-  
   while((magnetStatus & 32) != 32) //while the magnet is not adjusted to the proper distance - 32: MD = 1
   {
     magnetStatus = 0; //reset reading
@@ -187,9 +249,11 @@ void checkMagnetPresence()
     Wire.endTransmission(); //end transmission
     Wire.requestFrom(0x36, 1); //request from the sensor
 
-    while(Wire.available() == 0); //wait until it becomes available 
+    while(Wire.available() == 0){ //wait until it becomes available 
+      Serial.println("Waiting for sensor available. Check wiring."); 
+    }
     magnetStatus = Wire.read(); //Reading the data after the request
-
+    
     Serial.print("Magnet status: ");
     Serial.println(magnetStatus, BIN); //print it in binary so you can compare it to the table (fig 21)    
     delay(10);  
