@@ -19,18 +19,21 @@ def run(args):
         device=torch.device("cuda" if args.cuda else "cpu")
     )
 
+    time = datetime.now().strftime("%Y%m%d-%H%M")
+    dirname = os.path.dirname(__file__)
+    log_dir = os.path.join(dirname,
+        'logs', args.env_id, args.algo, 'seed{}-{}'.format(args.seed, time))
+
     algo = ALGOS[args.algo](
         buffer_exp=buffer_exp,
         state_shape=env.observation_space.shape,
         action_shape=env.action_space.shape,
         device=torch.device("cuda" if args.cuda else "cpu"),
         seed=args.seed,
-        rollout_length=args.rollout_length
+        rollout_length=args.rollout_length,
+        max_steps=args.num_steps,
+        log_dir=log_dir
     )
-
-    time = datetime.now().strftime("%Y%m%d-%H%M")
-    log_dir = os.path.join(
-        'logs', args.env_id, args.algo, 'seed{}-{}'.format(args.seed, time))
 
     trainer = Trainer(
         env=env,
