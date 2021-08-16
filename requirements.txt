@@ -1,9 +1,19 @@
 enum==0.4.7
 gym==0.16.0
 numpy==1.16.6
-rospy==1.14.11
 subprocess32==3.5.4
 shapely==1.7.1
 tensorboard==2.1.0
 torch==1.4.0
 tqdm==4.61.2
+catkin_pkg==0.4.23
+#pip uninstall em -- OTHERWISE SUPERSEEDS EMPY
+empy==3.3.4
+pyyaml==5.4.1
+distro==1.6.0 
+rospkg==1.3.0
+defusedxml==0.7.1
+
+
+# sudo apt-get install 
+# ros-kinetic-rqt-multiplot
