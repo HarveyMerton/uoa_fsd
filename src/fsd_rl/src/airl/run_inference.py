@@ -10,6 +10,7 @@ from gail_airl_ppo.utils import log_make
 from gail_airl_ppo.env import make_env
 from gail_airl_ppo.algo import SACExpert
 from gail_airl_ppo.connections import PPExpert, PhysicalConnection
+from std_msgs.msg import Int16
 
 from collections import namedtuple
 
