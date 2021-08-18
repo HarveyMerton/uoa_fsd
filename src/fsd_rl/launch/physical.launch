@@ -1,0 +1,23 @@
+<!--
+    Date of creation: 5/07/2021
+    Based on application created by: Ricardo Tellez <rtellez@theconstructsim.com>
+    Alterations by: Harvey Merton <hmer101@aucklanduni.ac.nz>
+    The Construct http://www.theconstructsim.com
+    License LGPLV3
+-->
+
+<launch>
+    <!-- Launch steering angle sensing node (reset Arduino) -->
+
+    <!-- Load the parameters for the algorithm -->
+    <rosparam command="load" file="$(find fsd_rl)/config/airl_params.yaml" />
+
+    <!-- Launch a file currently testing -->
+    <node pkg="fsd_rl" name="physical_main" type="main_physical.py" output="screen"/>
+
+    <!-- Launch serial receiver -->
+    <node name="serial_node"        pkg="rosserial_python"      type="serial_node.py">
+    <param name="port"              type="string"               value="/dev/ttyACM0"/>
+    <param name="baud"              type="int"                  value="115200"/>
+    </node>
+</launch>

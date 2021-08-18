@@ -7,7 +7,7 @@
 -->
 
 <launch>
-    <!-- Launch simulator (Do first and separately) -->
+    <!-- Launch simulator or physical system (Do first and separately) -->
     <!-- <include file="$(find fssim_interface)/launch/fssim.launch" /> -->
 
     <!-- Load the parameters for the algorithm -->

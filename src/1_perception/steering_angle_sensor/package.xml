@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>steering_angle_sensor</name>
+  <version>0.0.0</version>
+  <description>Steering angle sensor</description>
+  <maintainer email="hmer101@aucklanduni.ac.nz">Harvey Merton</maintainer>
+  <license>TODO</license>
+  <author email="hmer101@aucklanduni.ac.nz">Harvey Merton</author>
+
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <!--TODO: Add the packages you want to build-->
+  <!--For custom message import-->
+  <depend>fsd_common_msgs</depend>
+
+  <!--Other depends-->
+  <depend>roscpp</depend>
+  <depend>std_msgs</depend>
+
+  <export>
+  </export>
+</package>

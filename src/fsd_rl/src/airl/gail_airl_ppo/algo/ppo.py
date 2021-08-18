@@ -1,12 +1,14 @@
 import torch
 from torch import nn
 from torch.optim import Adam
+import rospy
 
 from .base import Algorithm
 from ..buffer import RolloutBuffer
 from ..network import StateIndependentPolicy, StateFunction
 from ..utils import plot_save_training, log_open_training
 
+from std_msgs.msg import Int16
 
 def calculate_gae(values, rewards, dones, next_values, gamma, lambd):
     # Calculate TD errors.
@@ -69,6 +71,10 @@ class PPO(Algorithm):
         # Tracking variables
         self.cnt_episode_reward = self.cnt_episode = 0
 
+        # Lap counter
+        self.cnt_lap = 0
+        rospy.Subscriber('/fssim/stat_lap_count', Int16, self.callback_lap)
+
         # Logging - open log file
         self.log_file = log_open_training(log_dir, max_steps)
 
@@ -79,6 +85,10 @@ class PPO(Algorithm):
             print("Written to logfile at: {}".format(self.log_file))
         except:
             pass
+
+    # Stores number of laps
+    def callback_lap(self, data_cnt_lap):
+        self.cnt_lap = data_cnt_lap.data
 
     def is_update(self, step):
         return step % self.rollout_length == 0
@@ -101,7 +111,7 @@ class PPO(Algorithm):
             self.cnt_episode += 1
 
             # Graph episode information
-            plot_save_training(self.log_file, self.cnt_episode, step, self.cnt_episode_reward)
+            plot_save_training(self.log_file, self.cnt_episode, step, self.cnt_episode_reward, self.cnt_lap)
 
             self.cnt_episode_reward = 0
 

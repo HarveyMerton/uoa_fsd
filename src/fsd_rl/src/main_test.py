@@ -36,6 +36,7 @@ if __name__ == '__main__':
     # Train SAC forward reinforcement learning
     # default, num_steps_ip, eval_interval_ip, env_id_ip, cuda_ip, seed_ip
     # ORIG params:
+
     #train_expert_init(False, 15, 5, 'Fsd-v0', False, 0)  # Short test
     train_expert_init(False, 10 ** 6, 10 ** 4, 'Fsd-v0', False, 0)  # Long test
 
