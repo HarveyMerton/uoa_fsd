@@ -10,9 +10,8 @@ from ..utils import soft_update, disable_gradient, plot_save_training, log_open_
 from ..network import (
     StateDependentPolicy, TwinnedStateActionFunction
 )
-from std_msgs.msg import Int32
+from std_msgs.msg import Int16
 from gazebo_connection import GazeboConnection
-
 
 class SAC(Algorithm):
 
@@ -70,9 +69,13 @@ class SAC(Algorithm):
         self.start_steps = start_steps
         self.tau = tau
 
-        # Tracking variables and publishers
+        # Tracking variables
         self.cnt_episode_reward = self.cnt_episode = 0
         self.gazebo = GazeboConnection()
+
+        # Lap counter
+        self.cnt_lap = 0
+        rospy.Subscriber('/fssim/stat_lap_count', Int16, self.callback_lap)
 
         # Logging - open log file
         self.log_file = log_open_training(log_dir, max_steps)
@@ -84,6 +87,12 @@ class SAC(Algorithm):
             print("Written to logfile at: {}".format(self.log_file))
         except:
             pass
+
+
+    # Stores number of laps
+    def callback_lap(self, data_cnt_lap):
+        self.cnt_lap = data_cnt_lap.data
+
 
     def is_update(self, steps):
         return steps >= max(self.start_steps, self.batch_size)
@@ -110,7 +119,7 @@ class SAC(Algorithm):
             self.cnt_episode += 1
 
             # Graph episode information
-            plot_save_training(self.log_file, self.cnt_episode, step, self.cnt_episode_reward)
+            plot_save_training(self.log_file, self.cnt_episode, step, self.cnt_episode_reward, self.cnt_lap)
 
             self.cnt_episode_reward = 0
 

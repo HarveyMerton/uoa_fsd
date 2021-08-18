@@ -41,8 +41,8 @@ THROTTLE_START_TIME = 3.0  # Time to accelerate for
 THROTTLE_SET = float(0.037)  # Set throttle position
 NUM_CONES = 3  # Number of cones of each colour stored and used
 RANGE = 10  # Range of cameras (note that range is set in sensors_1.yaml)
-STEER_ANG_MIN = -1  # Try change to 0.4 & -0.4
-STEER_ANG_MAX = 1
+STEER_ANG_MIN = -0.4  # Try change to 0.4 & -0.4
+STEER_ANG_MAX = 0.4
 
 #IDENT_BLUE = 1  # Identifiers for blue and yellow cones
 #IDENT_YELLOW = -1
@@ -236,7 +236,7 @@ class FsdEnv(gym.Env):
     def process_data(self, observation, observation_prev):
         # Check if simulation is done (if vehicle has left track)
         done = False
-        if self.shutdown == 1:
+        if self.shutdown == 1 or self.cnt_lap >= 2:
             done = True
 
         # Calculate reward
@@ -357,7 +357,7 @@ class FsdEnv(gym.Env):
                 dist_list = self.helper_find_dist([target])
                 dist_to_target = dist_list[0]
 
-                reward = RANGE/dist_to_target  # Reward based on inverse distance to target
+                reward = max(RANGE/dist_to_target, RANGE/0.5)  # Reward based on inverse distance to target
 
         return reward
 
