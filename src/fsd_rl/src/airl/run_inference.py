@@ -14,7 +14,7 @@ from gail_airl_ppo.connections import PPExpert, PhysicalConnection
 from collections import namedtuple
 
 def run(args):
-    env = make_env(args.env_id, sim=False)
+    env = make_env(args.env_id, sim=True)
 
     # IF using SAC as the expert
     if args.algo == 'sac':
