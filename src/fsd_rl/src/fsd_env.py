@@ -357,7 +357,8 @@ class FsdEnv(gym.Env):
                 dist_list = self.helper_find_dist([target])
                 dist_to_target = dist_list[0]
 
-                reward = max(RANGE/dist_to_target, RANGE/0.5)  # Reward based on inverse distance to target
+                #reward = max(RANGE/dist_to_target, RANGE/0.5)  # Reward based on inverse distance to target
+                reward = RANGE / dist_to_target
 
         return reward
 
