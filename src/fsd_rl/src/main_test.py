@@ -18,11 +18,8 @@ import fsd_env
 
 def unit_test():
 
-    test = '/home/harvey/uoa_fsd/src/fsd_rl/src/airl/logs/Fsd-v0/sac/seed0-20210809-1636'
-
-    algo = os.path.split(os.path.split(test)[0])[1]
-    #path2 = os.path.split(path[0])
-    print(path)
+    tl = list()
+    print(len(tl))
 
 
 if __name__ == '__main__':
@@ -49,11 +46,11 @@ if __name__ == '__main__':
     # Train AIRL inverse reinforcement learning
     # default, buffer, rollout_length (2000 for Inv.P and 50000 for HOPPER), num_steps, eval_interval, env_id, algo, cuda, seed
     # ORIG params: size2000
-    #train_immitation_init(False, 'buffers/Fsd-v0/size15_std0.0_prand0.0.pth', 50000, 100000, 5000, 'Fsd-v0', 'airl', False, 0)
+    # train_immitation_init(False, 'buffers/Fsd-v0/size15_std0.0_prand0.0.pth', 50000, 100000, 5000, 'Fsd-v0', 'airl', False, 0)
 
     # Run inference
-    #weights_path = os.path.join(os.path.dirname(__file__), 'airl/weights/Fsd-v0.pth')
-    #run_inference_init(True, 'sac', weights_path, 'Fsd-v0', False)
+    # weights_path = os.path.join(os.path.dirname(__file__), 'airl/weights/Fsd-v0.pth')
+    # run_inference_init(True, 'sac', weights_path, 'Fsd-v0', False)
 
     print("End")
 

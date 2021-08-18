@@ -184,6 +184,9 @@ class FsdEnv(gym.Env):
 
     # Performs a single step in the environment
     def step(self, action):
+        # Clip action to limits (not required)
+        #action = np.clip(action, self.action_space.low, self.action_space.high)
+
         # Given the action selected by the learning algorithm,
         # we perform the corresponding movement of the robot
 
@@ -255,8 +258,9 @@ class FsdEnv(gym.Env):
             steering_angle = self.phys_sa.data
 
         i = 0
-        while i < len(self.obs_cones):
-            temp = self.obs_cones[i]
+        curr_obs_cones = self.obs_cones
+        while i < len(curr_obs_cones):
+            temp = curr_obs_cones[i]
 
             # Assign cones to the correct lists based on the highest probability
             if temp.index(max(temp[2:5])) == 2:  # Cone is blue
