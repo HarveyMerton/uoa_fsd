@@ -184,8 +184,8 @@ class FsdEnv(gym.Env):
 
     # Performs a single step in the environment
     def step(self, action):
-        # Clip action to limits (not required)
-        #action = np.clip(action, self.action_space.low, self.action_space.high)
+        # Clip action to limits (required as mlp in 'policy' outputs action in -1 -> 1 space)
+        action = np.clip(action, self.action_space.low, self.action_space.high)
 
         # Given the action selected by the learning algorithm,
         # we perform the corresponding movement of the robot
