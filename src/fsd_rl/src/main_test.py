@@ -49,8 +49,8 @@ if __name__ == '__main__':
     # train_immitation_init(False, 'buffers/Fsd-v0/size15_std0.0_prand0.0.pth', 50000, 100000, 5000, 'Fsd-v0', 'airl', False, 0)
 
     # Run inference
-    # weights_path = os.path.join(os.path.dirname(__file__), 'airl/weights/Fsd-v0.pth')
-    # run_inference_init(True, 'sac', weights_path, 'Fsd-v0', False)
+    #weights_path = os.path.join(os.path.dirname(__file__), 'airl/weights/Fsd-v0.pth')
+    #run_inference_init(True, 'sac', weights_path, 'Fsd-v0', False)
 
     print("End")
 

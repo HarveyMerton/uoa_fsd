@@ -41,8 +41,10 @@ THROTTLE_START_TIME = 3.0  # Time to accelerate for
 THROTTLE_SET = float(0.037)  # Set throttle position
 NUM_CONES = 3  # Number of cones of each colour stored and used
 RANGE = 10  # Range of cameras (note that range is set in sensors_1.yaml)
-STEER_ANG_MIN = -0.4  # Try change to 0.4 & -0.4
+STEER_ANG_DEG_LIMIT = 45 # Estimate of steering angle limit in sim (at +1/-1)
+STEER_ANG_MIN = -0.4
 STEER_ANG_MAX = 0.4
+STEER_ANG_RATE_MAX = 45 # Deg/s
 
 #IDENT_BLUE = 1  # Identifiers for blue and yellow cones
 #IDENT_YELLOW = -1
@@ -99,7 +101,8 @@ class FsdEnv(gym.Env):
         rospy.set_param('/use_sim_time', 'true')
 
         # gets training parameters from param server
-        self.running_step = rospy.get_param("/running_step")
+        self.running_step = rospy.get_param("/running_step") # Step size/sample time
+        self.rate_limit_sample = (STEER_ANG_RATE_MAX / STEER_ANG_DEG_LIMIT) * self.running_step # Maximum normalised ang rate (norm ang/sample)
 
         # Set tracking instance variables
         self.np_random = self.cnt_step = self.cnt_lap = self.shutdown = 0  # Tracking variables
@@ -184,8 +187,17 @@ class FsdEnv(gym.Env):
 
     # Performs a single step in the environment
     def step(self, action):
+        # Angle limiter
         # Clip action to limits (required as mlp in 'policy' outputs action in -1 -> 1 space)
         action = np.clip(action, self.action_space.low, self.action_space.high)
+
+        # Rate limiter
+        # Check if rate limiting required
+        if abs(action-self.observation_prev["steering_angle"]) > self.rate_limit_sample:
+            if action > self.observation_prev["steering_angle"]:
+                action = self.observation_prev["steering_angle"] + self.rate_limit_sample
+            else:
+                action = self.observation_prev["steering_angle"] - self.rate_limit_sample
 
         # Given the action selected by the learning algorithm,
         # we perform the corresponding movement of the robot
@@ -361,7 +373,7 @@ class FsdEnv(gym.Env):
                 dist_list = self.helper_find_dist([target])
                 dist_to_target = dist_list[0]
 
-                #reward = max(RANGE/dist_to_target, RANGE/0.5)  # Reward based on inverse distance to target
+                #reward = max(RANGE/dist_to_target, RANGE/0.25)  # Reward based on inverse distance to target
                 reward = RANGE / dist_to_target
 
         return reward
