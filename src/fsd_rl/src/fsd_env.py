@@ -343,6 +343,7 @@ class FsdEnv(gym.Env):
 
         # Find distance to right set of cones
 
+        # Find Estimated Time to Target
         return reward
 
     # Reward for moving towards centre between furthest cones
@@ -364,6 +365,47 @@ class FsdEnv(gym.Env):
                 #reward = max(RANGE/dist_to_target, RANGE/0.5)  # Reward based on inverse distance to target
                 reward = RANGE / dist_to_target
 
+        return reward
+
+    # Rewards agent for minimizing time taken to get to target (with radius)
+    def helper_reward_timestep(self, observation_prev, out_cones):
+        reward = 0
+        sample_time = 0.1 #Change based on chosen sample time step
+        radius = 0.5
+        target_reached = 0
+
+        if out_cones:
+            reward = -10
+        else:
+            target = self.helper_point_furthest_center(observation_prev)  # Find target point based on previous observation
+
+            if target[0] == 0 and target[1] == 0: # If invalid Target
+                reward = 1 #reward for staying inside cones
+
+            else: 
+                
+                # We want to reward for minimising time to a target
+                # Give +1 for reaching target
+                # Give +1 if time to reach target was less than time to reach previous target
+                # Set a radius around target to make reaching easier
+                dist_list = self.helper_find_dist([target])
+                dist_to_target = dist_list[0]
+
+                if dist_to_target < radius:
+                    target_reached = 1
+                    prev_target_step_cnt = self.cnt_step
+
+                #reward = max(RANGE/dist_to_target, RANGE/0.5)  # Reward based on inverse distance to target
+                if target_reached = 0:
+                    time_diff = (self.cnt_step - prev_target_step_cnt)
+                    reward = dist_to_target/time_diff
+
+                if reward = 0
+                    reward = RANGE / dist_to_target
+
+                if target_reached = 1:
+                    target_reached = 0
+                
         return reward
 
 
@@ -449,6 +491,7 @@ class FsdEnv(gym.Env):
             cone_list_n.append(cone_list_n[i % num_cones_orig])
 
             i = i + 1
+
 
     # def helper_reset(self):
         # self.gazebo.resetSim() # Creates "backwards in time" errors
