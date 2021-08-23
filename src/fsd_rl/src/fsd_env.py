@@ -105,6 +105,9 @@ class FsdEnv(gym.Env):
         self.np_random = self.cnt_step = self.cnt_lap = self.shutdown = 0  # Tracking variables
         self.observation_prev = None
 
+        # TimeStep Reward - Step Counter:
+        self.cnt_step_target = 0
+
         # Simulation-only vars
         self.obs_cmd = self.obs_cones = None  # Last "observed" command and cone positions
 
@@ -290,6 +293,7 @@ class FsdEnv(gym.Env):
 
         self.cnt_step = 0  # Counter for number of steps
         self.cnt_lap = 0  # Counter for number of laps
+        self.cnt_step_target = 0 # Counter for number for steps for reward function 4
 
         self.obs_cmd = ControlCommand()  # Latest control command
         self.obs_cones = list()  # Cone positions relative to car
@@ -299,6 +303,7 @@ class FsdEnv(gym.Env):
         #self.phys_cones = None
 
         self.observation_prev = self.make_observation()
+        
 
     # Returns state of environment from observation (only cone positions)
     def helper_state_from_observation(self, observation):
@@ -370,9 +375,11 @@ class FsdEnv(gym.Env):
     # Rewards agent for minimizing time taken to get to target (with radius)
     def helper_reward_timestep(self, observation_prev, out_cones):
         reward = 0
-        sample_time = 0.1 #Change based on chosen sample time step
-        radius = 0.5
-        target_reached = 0
+        #sample_time = 0.1 #Change based on chosen sample time step
+        #Use self.running_step for sample time
+        radius = 0.5 # Set a radius around target to make reaching easier
+        #target_reached = 0 #flag
+        REWARD_SCALER = 10 #increase if reward is too low
 
         if out_cones:
             reward = -10
@@ -383,29 +390,15 @@ class FsdEnv(gym.Env):
                 reward = 1 #reward for staying inside cones
 
             else: 
-                
-                # We want to reward for minimising time to a target
-                # Give +1 for reaching target
-                # Give +1 if time to reach target was less than time to reach previous target
-                # Set a radius around target to make reaching easier
                 dist_list = self.helper_find_dist([target])
                 dist_to_target = dist_list[0]
 
-                if dist_to_target < radius:
-                    target_reached = 1
-                    prev_target_step_cnt = self.cnt_step
-
-                #reward = max(RANGE/dist_to_target, RANGE/0.5)  # Reward based on inverse distance to target
-                if target_reached = 0:
-                    time_diff = (self.cnt_step - prev_target_step_cnt)
-                    reward = dist_to_target/time_diff
-
-                if reward = 0
-                    reward = RANGE / dist_to_target
-
-                if target_reached = 1:
-                    target_reached = 0
-                
+                if dist_to_target <= radius:
+                    time_diff = (self.cnt_step - self.cnt_step_target)
+                    reward = REWARD_SCALER/time_diff #higher reward for smaller time difference
+                    self.cnt_step_target = self.cnt_step
+                else:
+                    reward = 1 #reward for staying in the cones
         return reward
 
 
