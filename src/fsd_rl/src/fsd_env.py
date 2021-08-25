@@ -499,6 +499,10 @@ class FsdEnv(gym.Env):
             cone_list_n.append(cone_list_n[i % num_cones_orig])
 
             i = i + 1
+    
+    def helper_pass_cone_count(self):
+        percentage_cones = self.num_cones_detected/self.total_num_cones
+        return percentage_cones
 
 
     # def helper_reset(self):
