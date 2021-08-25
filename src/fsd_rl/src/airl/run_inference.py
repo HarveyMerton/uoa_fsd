@@ -31,6 +31,7 @@ def run(args):
     # Create logfile
     file_log = open(log_make_inference(args), "a")
     file_log.writelines(['Step_num', ' ', 'Done_flag', ' ', 'Time_total', ' ', 'Action', ' ', 'Action other (expert for sim otherwise physical) ', '\n'])
+    #file_log.writelines(['Step_num', ' ', 'Done_flag', ' ', 'Time_total', ' ', 'Action', ' ','Cones Passed',' ','% Total Cones', ' ', 'Action other (expert for sim otherwise physical) ', '\n'])
 
     # Set variables
     cnt_step = 0  # Time step counter
@@ -63,6 +64,7 @@ def run(args):
 
         # Write to log file
         file_log.writelines([str(cnt_step), ' ', str(done), ' ', str(cnt_step * step_size), ' ', str(action), ' ', str(action_other), ' ', '\n'])
+        #file_log.writelines([str(cnt_step), ' ', str(done), ' ', str(cnt_step * step_size), ' ', str(action), ' ',str(cones_passed), ' ', str(percent_cones),' ', str(action_other), ' ', '\n'])
 
         # Update state
         state = next_state
