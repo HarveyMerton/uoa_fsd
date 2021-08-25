@@ -247,7 +247,8 @@ class FsdEnv(gym.Env):
 
         # Calculate reward
         #reward = self.helper_reward_steps(observation, observation_prev, done)  # Reward for number of steps inside cones
-        reward = self.helper_reward_dist_local(observation_prev, done)  # Reward for moving to correct point
+        #reward = self.helper_reward_dist_local(observation_prev, done)  # Reward for moving to correct point
+        reward = self.helper_reward_timestep(observation_prev, done) # Reward for moving to correct point in a short time period
 
         return reward, done
 
@@ -375,10 +376,7 @@ class FsdEnv(gym.Env):
     # Rewards agent for minimizing time taken to get to target (with radius)
     def helper_reward_timestep(self, observation_prev, out_cones):
         reward = 0
-        #sample_time = 0.1 #Change based on chosen sample time step
-        #Use self.running_step for sample time
-        radius = 0.5 # Set a radius around target to make reaching easier
-        #target_reached = 0 #flag
+        radius = 0.1 # Set a radius around target to make reaching easier
         REWARD_SCALER = 10 #increase if reward is too low
 
         if out_cones:
