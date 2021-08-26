@@ -30,7 +30,8 @@ def run(args):
 
     # Create logfile
     file_log = open(log_make_inference(args), "a")
-    file_log.writelines(['Step_num', ' ', 'Done_flag', ' ', 'Time_total', ' ', 'Action', ' ', 'Action other (expert for sim otherwise physical) ', '\n'])
+    #file_log.writelines(['Step_num', ' ', 'Done_flag', ' ', 'Time_total', ' ', 'Action', ' ', 'Action other (expert for sim otherwise physical) ', '\n'])
+    file_log.writelines(['Step_num', ' ', 'Done_flag', ' ', 'Time_total', ' ', 'Action',' ','% Total Cones Passed', ' ', 'Action other (expert for sim otherwise physical) ', '\n'])
 
     # Set variables
     cnt_step = 0  # Time step counter
@@ -57,12 +58,14 @@ def run(args):
         if args.sim:  # In simulation
             next_state, _, done, _ = env.step(action)  # Take step in simulated environment
             action_other = pp_expert.get_expert_action()  # Get expert action for comparison
+            percentage_cones = env.helper_pass_cone_count() # Get percentage of passed cones
         else:  # In physical world
             next_state, _, done, _ = env.step(action)  # Take step in real environment
             action_other = phys_system.get_physical_sa()  # Get physical steering angle for comparison
 
         # Write to log file
-        file_log.writelines([str(cnt_step), ' ', str(done), ' ', str(cnt_step * step_size), ' ', str(action), ' ', str(action_other), ' ', '\n'])
+        #file_log.writelines([str(cnt_step), ' ', str(done), ' ', str(cnt_step * step_size), ' ', str(action), ' ', str(action_other), ' ', '\n'])
+        file_log.writelines([str(cnt_step), ' ', str(done), ' ', str(cnt_step * step_size), ' ', str(action), ' ',str(percentage_cones),' ', str(action_other), ' ', '\n'])
 
         # Update state
         state = next_state

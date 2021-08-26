@@ -81,6 +81,9 @@ class FsdEnv(gym.Env):
         cones_y_high = np.full((2*NUM_CONES, 1), self.y_high)
         #cones_col_low = np.full((2*NUM_CONES, 1), min(IDENT_BLUE, IDENT_YELLOW))
         #cones_col_high = np.full((2*NUM_CONES, 1), max(IDENT_BLUE, IDENT_YELLOW))
+        self.cone_cnt_vector = [] #create vector to store number of cones passed
+        self.total_num_cones = 100 #total number of cones in track
+        self.num_cones_detected = 0
 
         cones_low = np.concatenate((cones_x_low, cones_y_low), axis=1)
         cones_high = np.concatenate((cones_x_high, cones_y_high), axis=1)
@@ -136,6 +139,12 @@ class FsdEnv(gym.Env):
     # Stores current cone locations
     def callback_cones(self, data_pt_cloud):
         self.obs_cones = list(point_cloud2.read_points(data_pt_cloud, skip_nans=True, field_names=("x", "y", "probability_blue", "probability_yellow", "probability_orange", "probability_other")))
+        
+        if self.obs_cones[3] == 1: #if a yellow cone is detected on the left
+            if (self.cone_cnt_vector[0] != self.obs_cones[0]) & (self.cone_cnt_vector[1] != self.obs_cones[1]):
+                self.cone_cnt_vector.append(point_cloud2.read_points(data_pt_cloud, skip_nans=True, field_names=("x","y")))
+                self.num_cones_detected += 1
+                
 
     #TODO: Implement physical cones callback
     def callback_cones_phys(self, data_cones):
@@ -161,6 +170,9 @@ class FsdEnv(gym.Env):
 
     # Resets the state of the environment and makes initial observation
     def reset(self):
+
+        print("Number of cones detected: ", self.num_cones_detected)
+        print("Track Passed: ", self.num_cones_detected/self.total_num_cones,"%")
         # 1st: resets the simulation to initial values
         # Kill and restart /automated_res
         if self.sim_true:
@@ -295,6 +307,9 @@ class FsdEnv(gym.Env):
         self.cnt_step = 0  # Counter for number of steps
         self.cnt_lap = 0  # Counter for number of laps
         self.cnt_step_target = 0 # Counter for number for steps for reward function 4
+
+        self.cone_cnt_vector = [] #create vector to store number of cones passed
+        self.num_cones_detected = 0
 
         self.obs_cmd = ControlCommand()  # Latest control command
         self.obs_cones = list()  # Cone positions relative to car
@@ -482,6 +497,10 @@ class FsdEnv(gym.Env):
             cone_list_n.append(cone_list_n[i % num_cones_orig])
 
             i = i + 1
+    
+    def helper_pass_cone_count(self):
+        percentage_cones = self.num_cones_detected/self.total_num_cones
+        return percentage_cones
 
 
     # def helper_reset(self):
