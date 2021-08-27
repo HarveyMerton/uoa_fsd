@@ -140,11 +140,6 @@ class FsdEnv(gym.Env):
     def callback_cones(self, data_pt_cloud):
         self.obs_cones = list(point_cloud2.read_points(data_pt_cloud, skip_nans=True, field_names=("x", "y", "probability_blue", "probability_yellow", "probability_orange", "probability_other")))
         
-        if self.obs_cones[3] == 1: #if a yellow cone is detected on the left
-            if (self.cone_cnt_vector[0] != self.obs_cones[0]) & (self.cone_cnt_vector[1] != self.obs_cones[1]):
-                self.cone_cnt_vector.append(point_cloud2.read_points(data_pt_cloud, skip_nans=True, field_names=("x","y")))
-                self.num_cones_detected += 1
-                
 
     #TODO: Implement physical cones callback
     def callback_cones_phys(self, data_cones):
