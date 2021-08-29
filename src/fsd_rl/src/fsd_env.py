@@ -46,8 +46,8 @@ STEER_ANG_MIN = -0.4
 STEER_ANG_MAX = 0.4
 STEER_ANG_RATE_MAX = 45 # Deg/s
 
-#IDENT_BLUE = 1  # Identifiers for blue and yellow cones
-#IDENT_YELLOW = -1
+IDENT_BLUE = 1  # Identifiers for blue and yellow cones
+IDENT_YELLOW = -1
 
 class FsdEnv(gym.Env):
 
@@ -81,11 +81,11 @@ class FsdEnv(gym.Env):
         cones_x_high = np.full((2*NUM_CONES, 1), self.x_high)
         cones_y_low = np.full((2*NUM_CONES, 1), self.y_low)
         cones_y_high = np.full((2*NUM_CONES, 1), self.y_high)
-        #cones_col_low = np.full((2*NUM_CONES, 1), min(IDENT_BLUE, IDENT_YELLOW))
-        #cones_col_high = np.full((2*NUM_CONES, 1), max(IDENT_BLUE, IDENT_YELLOW))
+        cones_col_low = np.full((2*NUM_CONES, 1), min(IDENT_BLUE, IDENT_YELLOW))
+        cones_col_high = np.full((2*NUM_CONES, 1), max(IDENT_BLUE, IDENT_YELLOW))
 
-        cones_low = np.concatenate((cones_x_low, cones_y_low), axis=1)
-        cones_high = np.concatenate((cones_x_high, cones_y_high), axis=1)
+        cones_low = np.concatenate((cones_x_low, cones_y_low, cones_col_low), axis=1)
+        cones_high = np.concatenate((cones_x_high, cones_y_high, cones_col_high), axis=1)
 
         # Flatten cones array
         cones_low = cones_low.flatten()
@@ -316,11 +316,11 @@ class FsdEnv(gym.Env):
     def helper_state_from_observation(self, observation):
         cones_blue_array = np.array(observation["cones_blue"])
         cones_yellow_array = np.array(observation["cones_yellow"])
-        #cones_identifiers = np.concatenate((np.full((NUM_CONES, 1), IDENT_BLUE), np.full((NUM_CONES, 1), IDENT_YELLOW)), axis=0)
+        cones_identifiers = np.concatenate((np.full((NUM_CONES, 1), IDENT_BLUE), np.full((NUM_CONES, 1), IDENT_YELLOW)), axis=0)
         #cones_identifiers = np.concatenate(np.full((NUM_CONES, 1), np.full(NUM_CONES, 1)), axis=0)
 
-        #observation = np.concatenate((np.concatenate((cones_blue_array, cones_yellow_array), axis=0), cones_identifiers), axis=1)
-        observation = np.concatenate((cones_blue_array, cones_yellow_array), axis=0)
+        observation = np.concatenate((np.concatenate((cones_blue_array, cones_yellow_array), axis=0), cones_identifiers), axis=1)
+        #observation = np.concatenate((cones_blue_array, cones_yellow_array), axis=0)
         observation = observation.flatten()
 
         return observation
