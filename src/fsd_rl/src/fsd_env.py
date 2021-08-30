@@ -509,6 +509,22 @@ class FsdEnv(gym.Env):
         percentage_cones = self.num_cones_detected/self.total_num_cones
         return percentage_cones
 
+	def helper_record_original_cones(self):
+		i = 0
+		curr_obs_cones = self.obs_cones
+		while i < len(curr_obs_cones):
+			temp = curr_obs_cones[i]
+			if (temp.index(max(temp[2:5])) == 3):
+				
+				if (temp[0] != self.cone_cnt_vector[0]) | (temp[1] != self.cone_cnt_vector[1]):
+						#if self.obs_cones[3] == 1: #if a yellow cone is detected on the left
+						# if (self.cone_cnt_vector[0] != self.obs_cones[0]) & (self.cone_cnt_vector[1] != self.obs_cones[1]):
+					self.cone_cnt_vector.append(temp[0:1])
+					self.num_cones_detected += 1
+			i += 1
+
+		return self.num_cones_detected
+
 
     # def helper_reset(self):
         # self.gazebo.resetSim() # Creates "backwards in time" errors

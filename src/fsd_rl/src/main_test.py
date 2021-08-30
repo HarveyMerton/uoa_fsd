@@ -35,7 +35,7 @@ if __name__ == '__main__':
     # ORIG params:
 
     #train_expert_init(False, 15, 5, 'Fsd-v0', False, 0)  # Short test
-    #train_expert_init(False, 10 ** 6, 10 ** 4, 'Fsd-v0', False, 0)  # Long test
+    train_expert_init(False, 10 ** 6, 10 ** 4, 'Fsd-v0', False, 0)  # Long test
 
     # Collect expert demonstrations
     # default, sac_expert, weight_ip (expert weights for SAC), env_id_ip, buffer_size_ip, std_ip, p_rand_ip, cuda_ip, seed_ip
@@ -49,8 +49,8 @@ if __name__ == '__main__':
     # train_immitation_init(False, 'buffers/Fsd-v0/size15_std0.0_prand0.0.pth', 50000, 100000, 5000, 'Fsd-v0', 'airl', False, 0)
 
     # Run inference
-    weights_path = os.path.join(os.path.dirname(__file__), 'airl/weights/Fsd-v0.pth')
-    run_inference_init(True, 'sac', weights_path, 'Fsd-v0', False)
+    #weights_path = os.path.join(os.path.dirname(__file__), 'airl/weights/Fsd-v0.pth')
+    #run_inference_init(True, 'sac', weights_path, 'Fsd-v0', False)
 
     print("End")
 
