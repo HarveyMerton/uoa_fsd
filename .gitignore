@@ -1,8 +1,17 @@
+//CATKIN
 build
 devel
 venv
-/logs
 .catkin_tools
+
+//DEV ENVIRONMENT
+.vscode
+.code-workspace
+
+//LOGS
+**/logs
+
+//OTHER
 .idea
 *.pyc
 
