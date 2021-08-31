@@ -4,13 +4,13 @@
     <arg name="save_directory" default=""/>
 
     <!--Image topic names-->
-    <arg name="camera_left"  default="left/image_raw"/>
-    <arg name="camera_right" default="right/image_raw"/>
+    <arg name="camera_left"  default="/stereo_pair/left/image_color"/>
+    <arg name="camera_right" default="/stereo_pair/right/image_color"/>
 
     <!--Number of corners-->
-    <arg name="board_width"   default="9"/>
+    <arg name="board_width"   default="7"/>
     <arg name="board_height"  default="6"/>
-    <arg name="square_length" default="25.0"/><!--mm-->
+    <arg name="square_length" default="108.0"/><!-- mm-->
     <arg name="image_width"  default="1936"/>
     <arg name="image_height" default="1216"/>
 
