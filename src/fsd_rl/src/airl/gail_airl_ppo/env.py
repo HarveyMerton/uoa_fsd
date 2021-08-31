@@ -3,8 +3,8 @@ import gym
 gym.logger.set_level(40)
 
 
-def make_env(env_id):
-    return NormalizedEnv(gym.make(env_id))
+def make_env(env_id, sim=True):
+    return NormalizedEnv(gym.make(env_id, sim=sim))
 
 
 class NormalizedEnv(gym.Wrapper):
@@ -13,9 +13,9 @@ class NormalizedEnv(gym.Wrapper):
         gym.Wrapper.__init__(self, env)
         self._max_episode_steps = env._max_episode_steps
 
-        self.scale = env.action_space.high
-        self.action_space.high /= self.scale
-        self.action_space.low /= self.scale
+        self.scale = 1 #env.action_space.high
+        #self.action_space.high /= self.scale
+        #self.action_space.low /= self.scale
 
     def step(self, action):
         return self.env.step(action * self.scale)

@@ -30,7 +30,7 @@ def add_random_noise(action, std):
 ### PLOTTING AND LOGGING ###
 # Plot training results on rqt_graph during training
 # log_dir = Log directory (None if not to log)
-def plot_save_training(log_file, cnt_episode, num_steps, reward):
+def plot_save_training(log_file, cnt_episode, num_steps, reward, cnt_lap):
     # Tracking variables and publishers
     pub_episode_cnt = rospy.Publisher('/algo/tracking/episode_cnt', Int32, queue_size=10)
     pub_reward = rospy.Publisher('/algo/tracking/episode_reward_total', Int32, queue_size=10)
@@ -49,7 +49,7 @@ def plot_save_training(log_file, cnt_episode, num_steps, reward):
     # Save in log if applicable
     if log_file is not None:
         # Write to log file
-        log_file.writelines([str(cnt_episode), ' ', str(num_steps), ' ', str(reward), '\n'])
+        log_file.writelines([str(cnt_episode), ' ', str(num_steps), ' ', str(reward), ' ', str(cnt_lap), '\n'])
 
 ## LOGFILES ##
 # General function to make logfile in the correct directory
@@ -83,7 +83,7 @@ def log_open_training(log_dir, max_steps):
 
         # Open file
         log_file = open(log_name, "a")
-        log_file.writelines(['Episode_num', ' ', 'Num_steps', ' ', 'Reward', '\n'])
+        log_file.writelines(['Episode_num', ' ', 'Num_steps', ' ', 'Reward', ' ', 'Lap_count', '\n'])
 
         return log_file
     else:
@@ -143,23 +143,3 @@ def collect_demo(env, sac_expert, algo, buffer_size, device, std, p_rand, seed=0
     mean_reward = total_return / num_episodes
     print('Mean return of the expert is %f' % mean_reward)
     return buffer
-
-
-# Pure pursuit expert
-class PPExpert():
-    def __init__(self):
-        # Subscribe to pure pursuit expert
-        rospy.Subscriber('/control/pure_pursuit/control_command_expert', ControlCommand, self.callback_cmd)
-
-        # Set instance variables for tracking
-        self.obs_cmd = ControlCommand()
-
-    ### CALLBACKS ###
-    # Stores the current command sent
-    def callback_cmd(self, data_cmd):
-        self.obs_cmd = data_cmd
-
-    ### FUNCTIONS ###
-    def get_expert_action(self):
-        return np.array([self.obs_cmd.steering_angle.data])
-

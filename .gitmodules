@@ -1,0 +1,12 @@
+[submodule "src/1_perception/sensor_camera/aruco_detector"]
+	path = src/1_perception/sensor_camera/aruco_detector
+	url = https://github.com/maraatech/aruco_detector.git
+[submodule "src/1_perception/sensor_camera/pylon_camera"]
+	path = src/1_perception/sensor_camera/pylon_camera
+	url = https://github.com/UoA-CARES/pylon_camera.git
+[submodule "src/1_perception/sensor_camera/stereo_calibration"]
+	path = src/1_perception/sensor_camera/stereo_calibration
+	url = https://github.com/UoA-CARES/stereo_calibration.git
+[submodule "src/1_perception/sensor_camera/cares_msgs"]
+	path = src/1_perception/sensor_camera/cares_msgs
+	url = https://github.com/UoA-CARES/cares_msgs.git
