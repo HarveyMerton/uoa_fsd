@@ -282,6 +282,16 @@ class FsdEnv(gym.Env):
 
         i = 0
         curr_obs_cones = self.obs_cones
+        #	while i < len(curr_obs_cones):
+	        #		temp = curr_obs_cones[i]
+	        #		if (temp.index(max(temp[2:5])) == 3):
+	            			
+	        #			if (temp[0] != self.cone_cnt_vector[0]) | (temp[1] != self.cone_cnt_vector[1]):
+	        #					#if self.obs_cones[3] == 1: #if a yellow cone is detected on the left
+	        #					# if (self.cone_cnt_vector[0] != self.obs_cones[0]) & (self.cone_cnt_vector[1] != self.obs_cones[1]):
+	        #				self.cone_cnt_vector.append(temp[0:1])
+	        #				self.num_cones_detected += 1
+	    #		i += 1
         while i < len(curr_obs_cones):
             temp = curr_obs_cones[i]
 
@@ -292,6 +302,14 @@ class FsdEnv(gym.Env):
                 cones_yellow.append(temp[0:2])
             # elif temp.index(max(temp[2:5])) == 4:  # Cone is orange
             #     # Treat as blue if on left of car, yellow if on right
+
+            # Save a list of unique yellow cones
+            if (temp.index(max(temp[2:5])) == 3): # Check if Yellow Cone
+                for j in range(len(self.cone_cnt_vector[0])):
+                    if (temp[0] != self.cone_cnt_vector[j][0]) | (temp[1] != self.cone_cnt_vector[j][1]): # Check if X or Y value has already been found
+                        self.cone_cnt_vector.append(temp[0:1]) # If at lease one unique X/Y value exists, then append this to list 
+                        self.num_cones_detected = self.num_cones_detected + 1
+
             i = i + 1
 
         # Return only NUM_CONES
@@ -509,21 +527,20 @@ class FsdEnv(gym.Env):
         percentage_cones = self.num_cones_detected/self.total_num_cones
         return percentage_cones
 
-	def helper_record_original_cones(self):
-		i = 0
-		curr_obs_cones = self.obs_cones
-		while i < len(curr_obs_cones):
-			temp = curr_obs_cones[i]
-			if (temp.index(max(temp[2:5])) == 3):
-				
-				if (temp[0] != self.cone_cnt_vector[0]) | (temp[1] != self.cone_cnt_vector[1]):
-						#if self.obs_cones[3] == 1: #if a yellow cone is detected on the left
-						# if (self.cone_cnt_vector[0] != self.obs_cones[0]) & (self.cone_cnt_vector[1] != self.obs_cones[1]):
-					self.cone_cnt_vector.append(temp[0:1])
-					self.num_cones_detected += 1
-			i += 1
-
-		return self.num_cones_detected
+	#def helper_record_original_cones(self):
+	#	i = 0
+	#	curr_obs_cones = self.obs_cones
+	#	while i < len(curr_obs_cones):
+	#		temp = curr_obs_cones[i]
+	#		if (temp.index(max(temp[2:5])) == 3):
+	#			
+	#			if (temp[0] != self.cone_cnt_vector[0]) | (temp[1] != self.cone_cnt_vector[1]):
+	#					#if self.obs_cones[3] == 1: #if a yellow cone is detected on the left
+	#					# if (self.cone_cnt_vector[0] != self.obs_cones[0]) & (self.cone_cnt_vector[1] != self.obs_cones[1]):
+	#				self.cone_cnt_vector.append(temp[0:1])
+	#				self.num_cones_detected += 1
+	#		i += 1
+	#	return self.num_cones_detected
 
 
     # def helper_reset(self):
