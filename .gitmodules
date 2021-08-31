@@ -1,3 +1,0 @@
-[submodule "src/1_perception/sensor_camera/stereo_calibration"]
-	path = src/1_perception/sensor_camera/stereo_calibration
-	url = https://github.com/UoA-CARES/stereo_calibration.git
