@@ -46,8 +46,8 @@ STEER_ANG_MIN = -0.4
 STEER_ANG_MAX = 0.4
 STEER_ANG_RATE_MAX = 67.5 # Deg/s
 
-#IDENT_BLUE = 1  # Identifiers for blue and yellow cones
-#IDENT_YELLOW = -1
+IDENT_BLUE = 1  # Identifiers for blue and yellow cones
+IDENT_YELLOW = -1
 
 class FsdEnv(gym.Env):
 
@@ -81,11 +81,11 @@ class FsdEnv(gym.Env):
         cones_x_high = np.full((2*NUM_CONES, 1), self.x_high)
         cones_y_low = np.full((2*NUM_CONES, 1), self.y_low)
         cones_y_high = np.full((2*NUM_CONES, 1), self.y_high)
-        #cones_col_low = np.full((2*NUM_CONES, 1), min(IDENT_BLUE, IDENT_YELLOW))
-        #cones_col_high = np.full((2*NUM_CONES, 1), max(IDENT_BLUE, IDENT_YELLOW))
+        cones_col_low = np.full((2*NUM_CONES, 1), min(IDENT_BLUE, IDENT_YELLOW))
+        cones_col_high = np.full((2*NUM_CONES, 1), max(IDENT_BLUE, IDENT_YELLOW))
 
-        cones_low = np.concatenate((cones_x_low, cones_y_low), axis=1) #, cones_col_low
-        cones_high = np.concatenate((cones_x_high, cones_y_high), axis=1) #, cones_col_high
+        cones_low = np.concatenate((cones_x_low, cones_y_low, cones_col_low), axis=1) 
+        cones_high = np.concatenate((cones_x_high, cones_y_high, cones_col_high), axis=1) 
 
         # Flatten cones array
         cones_low = cones_low.flatten()
@@ -94,7 +94,7 @@ class FsdEnv(gym.Env):
         self.observation_space = spaces.Box(low=cones_low, high=cones_high, dtype=float)
 
         # Action space
-        #self.action_space = spaces.Box(low=float(STEER_ANG_MIN), high=float(STEER_ANG_MAX), shape=(1,), dtype=float)
+        self.action_space = spaces.Box(low=float(STEER_ANG_MIN), high=float(STEER_ANG_MAX), shape=(1,), dtype=float)
 
         # Establish connection with simulator
         self.gazebo = GazeboConnection()
@@ -118,21 +118,21 @@ class FsdEnv(gym.Env):
 
     ### DYNAMIC PROPERTIES ###
     # Change action space on every step for rate limiting
-    @property
-    def action_space(self):
-        # Rate limiter
-        # Set limits for rate
-        max_rate = self.observation_prev["steering_angle"] + self.rate_limit_sample
-        min_rate = self.observation_prev["steering_angle"] - self.rate_limit_sample
+    # @property
+    # def action_space(self):
+    #     # Rate limiter
+    #     # Set limits for rate
+    #     max_rate = self.observation_prev["steering_angle"] + self.rate_limit_sample
+    #     min_rate = self.observation_prev["steering_angle"] - self.rate_limit_sample
 
-        # Angle limiter
-        # Clip action to limits (required as mlp in 'policy' outputs action in -1 -> 1 space)
-        max_rate = np.clip(max_rate, STEER_ANG_MIN, STEER_ANG_MAX)
-        min_rate = np.clip(min_rate, STEER_ANG_MIN, STEER_ANG_MAX)
+    #     # Angle limiter
+    #     # Clip action to limits (required as mlp in 'policy' outputs action in -1 -> 1 space)
+    #     max_rate = np.clip(max_rate, STEER_ANG_MIN, STEER_ANG_MAX)
+    #     min_rate = np.clip(min_rate, STEER_ANG_MIN, STEER_ANG_MAX)
 
-        action_space = spaces.Box(low=float(min_rate), high=float(max_rate), shape=(1,), dtype=float)
+    #     action_space = spaces.Box(low=float(min_rate), high=float(max_rate), shape=(1,), dtype=float)
 
-        return action_space
+    #     return action_space
 
     ### CALLBACKS ###
     # Stores the current command sent
@@ -261,6 +261,7 @@ class FsdEnv(gym.Env):
         # Update variables
         self.cnt_step += 1
         self.observation_prev = observation
+        print("STATE: {}".format(state))
 
         return state, reward, done, {}
 
@@ -334,10 +335,10 @@ class FsdEnv(gym.Env):
     def helper_state_from_observation(self, observation):
         cones_blue_array = np.array(observation["cones_blue"])
         cones_yellow_array = np.array(observation["cones_yellow"])
-        #cones_identifiers = np.concatenate((np.full((NUM_CONES, 1), IDENT_BLUE), np.full((NUM_CONES, 1), IDENT_YELLOW)), axis=0)
+        cones_identifiers = np.concatenate((np.full((NUM_CONES, 1), IDENT_BLUE), np.full((NUM_CONES, 1), IDENT_YELLOW)), axis=0)
 
-        #observation = np.concatenate((np.concatenate((cones_blue_array, cones_yellow_array), axis=0), cones_identifiers), axis=1)
-        observation = np.concatenate((cones_blue_array, cones_yellow_array), axis=0)
+        observation = np.concatenate((np.concatenate((cones_blue_array, cones_yellow_array), axis=0), cones_identifiers), axis=1)
+        #observation = np.concatenate((cones_blue_array, cones_yellow_array), axis=0)
         observation = observation.flatten()
 
         return observation
