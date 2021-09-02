@@ -22,6 +22,7 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   sensor_msgs
   cares_msgs
+  fsd_common_msgs
 )
 
 find_package(OpenCV REQUIRED)
