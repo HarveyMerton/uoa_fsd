@@ -1,0 +1,2 @@
+std_msgs/Int16MultiArray marker_ids
+geometry_msgs/PoseArray marker_poses

@@ -18,5 +18,6 @@ defusedxml==0.7.1
 
 # sudo apt-get install 
 # ros-melodic-rqt-multiplot
-#ros-melodic-rosserial
+#ros-melodic-rosserial-arduino
+# ros-melodic-rosserial
 #pyserial

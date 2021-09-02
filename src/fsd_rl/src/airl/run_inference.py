@@ -15,7 +15,7 @@ from std_msgs.msg import Int16
 from collections import namedtuple
 
 def run(args):
-    env = make_env(args.env_id, sim=True)
+    env = make_env(args.env_id, sim=args.sim)
 
     # IF using SAC as the expert
     if args.algo == 'sac':
@@ -59,7 +59,7 @@ def run(args):
             action_other = pp_expert.get_expert_action()  # Get expert action for comparison
         else:  # In physical world
             next_state, _, done, _ = env.step(action)  # Take step in real environment
-            action_other = phys_system.get_physical_sa()  # Get physical steering angle for comparison
+            action_other = 0 #phys_system.get_physical_sa()  # Get physical steering angle for comparison
 
         # Write to log file
         file_log.writelines([str(cnt_step), ' ', str(done), ' ', str(cnt_step * step_size), ' ', str(action), ' ', str(action_other), ' ', '\n'])
