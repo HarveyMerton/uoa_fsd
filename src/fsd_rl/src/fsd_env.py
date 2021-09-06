@@ -44,7 +44,7 @@ RANGE = 10  # Range of cameras (note that range is set in sensors_1.yaml)
 STEER_ANG_DEG_LIMIT = 45 # Estimate of steering angle limit in sim (at +1/-1)
 STEER_ANG_MIN = -0.4
 STEER_ANG_MAX = 0.4
-STEER_ANG_RATE_MAX = 67.5 # Deg/s
+STEER_ANG_RATE_MAX = 135 # Deg/s
 
 IDENT_BLUE = 1  # Identifiers for blue and yellow cones
 IDENT_YELLOW = -1
@@ -189,8 +189,8 @@ class FsdEnv(gym.Env):
     # Resets the state of the environment and makes initial observation
     def reset(self):
 
-        print("Number of cones detected: ", self.num_cones_detected)
-        print("Track Passed: ", self.num_cones_detected/self.total_num_cones,"%")
+        #print("Number of cones detected: ", self.num_cones_detected)
+        #print("Track Passed: ", self.num_cones_detected/self.total_num_cones,"%")
         # 1st: resets the simulation to initial values
         # Kill and restart /automated_res
         if self.sim_true:
@@ -220,14 +220,14 @@ class FsdEnv(gym.Env):
         # Angle limiter
         # Clip action to limits (required as mlp in 'policy' outputs action in -1 -> 1 space)
         action = np.clip(action, self.action_space.low, self.action_space.high)
-        #
-        # # Rate limiter
-        # # Check if rate limiting required
-        # if abs(action-self.observation_prev["steering_angle"]) > self.rate_limit_sample:
-        #     if action > self.observation_prev["steering_angle"]:
-        #         action = self.observation_prev["steering_angle"] + self.rate_limit_sample
-        #     else:
-        #         action = self.observation_prev["steering_angle"] - self.rate_limit_sample
+        
+        # Rate limiter
+        # Check if rate limiting required
+        if abs(action-self.observation_prev["steering_angle"]) > self.rate_limit_sample:
+            if action > self.observation_prev["steering_angle"]:
+                action = self.observation_prev["steering_angle"] + self.rate_limit_sample
+            else:
+                action = self.observation_prev["steering_angle"] - self.rate_limit_sample
 
         # Given the action selected by the learning algorithm,
         # we perform the corresponding movement of the robot
@@ -273,7 +273,7 @@ class FsdEnv(gym.Env):
         # Update variables
         self.cnt_step += 1
         self.observation_prev = observation
-        print("STATE: {}".format(state))
+        #print("STATE: {}".format(state))
 
         return state, reward, done, {}
 
