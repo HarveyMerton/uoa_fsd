@@ -1,0 +1,3 @@
+Episode_num Num_steps Reward Lap_count
+1 162 161 1
+2 317 154 1

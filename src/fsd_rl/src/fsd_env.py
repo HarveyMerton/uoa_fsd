@@ -169,8 +169,8 @@ class FsdEnv(gym.Env):
     # Resets the state of the environment and makes initial observation
     def reset(self):
 
-        print("Number of cones detected: ", self.num_cones_detected)
-        print("Track Passed: ", self.num_cones_detected/self.total_num_cones,"%")
+        print('Number of cones detected: ', self.num_cones_detected)
+        print('Track Passed: ', self.num_cones_detected/self.total_num_cones,'%')
         # 1st: resets the simulation to initial values
         # Kill and restart /automated_res
         if self.sim_true:
@@ -203,11 +203,11 @@ class FsdEnv(gym.Env):
 
         # Rate limiter
         # Check if rate limiting required
-        if abs(action-self.observation_prev["steering_angle"]) > self.rate_limit_sample:
-            if action > self.observation_prev["steering_angle"]:
-                action = self.observation_prev["steering_angle"] + self.rate_limit_sample
-            else:
-                action = self.observation_prev["steering_angle"] - self.rate_limit_sample
+        # if abs(action-self.observation_prev["steering_angle"]) > self.rate_limit_sample:
+        #    if action > self.observation_prev["steering_angle"]:
+        #        action = self.observation_prev["steering_angle"] + self.rate_limit_sample
+        #    else:
+        #        action = self.observation_prev["steering_angle"] - self.rate_limit_sample
 
         # Given the action selected by the learning algorithm,
         # we perform the corresponding movement of the robot
@@ -265,9 +265,9 @@ class FsdEnv(gym.Env):
             done = True
 
         # Calculate reward
-        #reward = self.helper_reward_steps(observation, observation_prev, done)  # Reward for number of steps inside cones
+        reward = self.helper_reward_steps(observation, observation_prev, done)  # Reward for number of steps inside cones
         #reward = self.helper_reward_dist_local(observation_prev, done)  # Reward for moving to correct point
-        reward = self.helper_reward_timestep(observation_prev, done) # Reward for moving to correct point in a short time period
+        #reward = self.helper_reward_timestep(observation_prev, done) # Reward for moving to correct point in a short time period
 
         return reward, done
 
@@ -282,19 +282,9 @@ class FsdEnv(gym.Env):
 
         i = 0
         curr_obs_cones = self.obs_cones
-        #	while i < len(curr_obs_cones):
-	        #		temp = curr_obs_cones[i]
-	        #		if (temp.index(max(temp[2:5])) == 3):
-	            			
-	        #			if (temp[0] != self.cone_cnt_vector[0]) | (temp[1] != self.cone_cnt_vector[1]):
-	        #					#if self.obs_cones[3] == 1: #if a yellow cone is detected on the left
-	        #					# if (self.cone_cnt_vector[0] != self.obs_cones[0]) & (self.cone_cnt_vector[1] != self.obs_cones[1]):
-	        #				self.cone_cnt_vector.append(temp[0:1])
-	        #				self.num_cones_detected += 1
-	    #		i += 1
-        while i < len(curr_obs_cones):
-            temp = curr_obs_cones[i]
 
+        while (i < len(curr_obs_cones)):
+            temp = curr_obs_cones[i]
             # Assign cones to the correct lists based on the highest probability
             if temp.index(max(temp[2:5])) == 2:  # Cone is blue
                 cones_blue.append(temp[0:2])
@@ -305,12 +295,19 @@ class FsdEnv(gym.Env):
 
             # Save a list of unique yellow cones
             if (temp.index(max(temp[2:5])) == 3): # Check if Yellow Cone
-                for j in range(len(self.cone_cnt_vector[0])):
-                    if (temp[0] != self.cone_cnt_vector[j][0]) | (temp[1] != self.cone_cnt_vector[j][1]): # Check if X or Y value has already been found
-                        self.cone_cnt_vector.append(temp[0:1]) # If at lease one unique X/Y value exists, then append this to list 
-                        self.num_cones_detected = self.num_cones_detected + 1
+                print("Length of cone vector:", len(self.cone_cnt_vector))
 
-            i = i + 1
+                if len(self.cone_cnt_vector) == 0:
+                    print(temp[0],temp[1],temp[2])
+					#if (temp[0] != self.cone_cnt_vector[0]) | (temp[1] != self.cone_cnt_vector[1]):
+					    #self.cone_cnt_vector.append(temp[0:1]) # If at lease one unique X/Y value exists, then append this to list
+					    #self.num_cones_detected = self.num_cones_detected + 1
+                elif len(self.cone_cnt_vector) != 0:
+	                for j in range(len(self.cone_cnt_vector)):
+	                    if (temp[0] != self.cone_cnt_vector[j][0]) | (temp[1] != self.cone_cnt_vector[j][1]): # Check if X or Y value has already been found
+	                        self.cone_cnt_vector.append(temp[0:1]) # If at lease one unique X/Y value exists, then append this to list
+	                        self.num_cones_detected = self.num_cones_detected + 1
+            i=i+1
 
         # Return only NUM_CONES
         cones_yellow = self.helper_closest_n_cones(cones_yellow, False)
@@ -365,7 +362,7 @@ class FsdEnv(gym.Env):
     def helper_reward_steps(self, observation, observation_prev, done):
         # Reward staying inside cones
         if not done:
-            reward = 1  # Alt 1: Change magnitude
+            reward = 100  # Alt 1: Change magnitude
         else:  # If shutdown (from leaving track) # Alt 3: Add negative reward for going out of track
             reward = 0
 
