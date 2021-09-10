@@ -2,7 +2,7 @@
 <launch>
     <!--Name space for the pair of stereo camera data-->
     <arg name="ns" default="stereo_pair"/>
-    <arg name="loop_rate" default="10"/>
+    <arg name="loop_rate" default="60"/>
     <arg name="display" default="true"/>
 
     <!--Name ID of the left and right cameras-->

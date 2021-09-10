@@ -38,7 +38,7 @@ THROTTLE_START_TIME = 3.0  # Time to accelerate for
 THROTTLE_SET = float(0.037)  # Set throttle position
 
 NUM_CONES = 3  # Number of cones of each colour stored and used
-THRES_CONES = 500  # Marker id threshold (<= thres - blue otherwise, yellow)
+THRES_CONES = 0  # Marker id threshold (<= thres - blue otherwise, yellow)
 RANGE = 10  # Range of cameras (note that range is set in sensors_1.yaml)
 #IDENT_BLUE = 1  # Identifiers for blue and yellow cones
 #IDENT_YELLOW = -1
