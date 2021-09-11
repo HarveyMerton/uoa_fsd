@@ -25,6 +25,7 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <geometry_msgs/PoseArray.h>
 #include <cares_msgs/StereoCameraInfo.h>
+#include <cares_msgs/MarkersPoseID.h>
 
 #include "../include/aruco_detector/parameters.h"
 #include "../include/aruco_detector/detector.h"
@@ -72,10 +73,17 @@ void callback(const sensor_msgs::ImageConstPtr &image_left_msg,
   poses.header.stamp = image_left_msg->header.stamp;
   poses.header.frame_id = image_left_msg->header.frame_id;
 
+  std_msgs::Int16MultiArray ids; 
+  ids.layout.dim.push_back(std_msgs::MultiArrayDimension());
+  ids.layout.dim[0].label = "markerID";
+  ids.layout.dim[0].size = markers.size();
+  ids.layout.dim[0].stride = 1;
+
   for(auto marker_info : markers){
     int id = marker_info.first;
     geometry_msgs::Pose marker = marker_info.second;
     poses.poses.push_back(marker);
+    ids.data.push_back(id);
 
     static tf2_ros::TransformBroadcaster br;
     geometry_msgs::TransformStamped pose_tf;
@@ -94,7 +102,12 @@ void callback(const sensor_msgs::ImageConstPtr &image_left_msg,
 
     br.sendTransform(pose_tf);
   }
-  pub_marker_pose.publish(poses);
+  
+  cares_msgs::MarkersPoseID markersWID; 
+  markersWID.marker_ids = ids; 
+  markersWID.marker_poses = poses; 
+
+  pub_marker_pose.publish(markersWID);
 }
 
 void setArucoDetector(int dictionary_id){
@@ -189,7 +202,7 @@ int main(int argc, char *argv[]) {
   Synchronizer<SyncPolicy> synchronizer(SyncPolicy(10), image_left_sub, image_right_sub, camera_info_sub);
   synchronizer.registerCallback(callback);
 
-  pub_marker_pose = nh.advertise<geometry_msgs::PoseArray>(marker, 10);
+  pub_marker_pose = nh.advertise<cares_msgs::MarkersPoseID>(marker, 10);
   ROS_INFO("Ready to find aruco markers");
 
   ros::spin();

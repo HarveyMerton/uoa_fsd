@@ -17,9 +17,10 @@ import fsd_env
 
 
 def unit_test():
-
-    tl = list()
-    print(len(tl))
+    
+    # Testing physical inference
+    weights_path = os.path.join(os.path.dirname(__file__), 'airl/weights/Fsd-v0.pth')
+    run_inference_init(False, 'sac', weights_path, 'Fsd-v0', False)
 
 
 if __name__ == '__main__':
@@ -53,8 +54,8 @@ if __name__ == '__main__':
     #train_immitation_init(False, path_abs, 50000, 100000, 5000, 'Fsd-v0', 'airl', False, 0)
 
     # Run inference
-    #weights_path = os.path.join(os.path.dirname(__file__), 'airl/weights/Fsd-v0.pth')
-    #run_inference_init(True, 'sac', weights_path, 'Fsd-v0', False)
+    weights_path = os.path.join(os.path.dirname(__file__), 'airl/weights/Fsd-v0.pth')
+    run_inference_init(True, 'sac', weights_path, 'Fsd-v0', False)
 
     print("End")
 
