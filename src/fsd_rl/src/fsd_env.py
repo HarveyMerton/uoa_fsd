@@ -44,7 +44,7 @@ RANGE = 10  # Range of cameras (note that range is set in sensors_1.yaml)
 STEER_ANG_DEG_LIMIT = 45 # Estimate of steering angle limit in sim (at +1/-1)
 STEER_ANG_MIN = -0.4
 STEER_ANG_MAX = 0.4
-STEER_ANG_RATE_MAX = 135 # Deg/s
+STEER_ANG_RATE_MAX = 180 # Deg/s
 
 IDENT_BLUE = 1  # Identifiers for blue and yellow cones
 IDENT_YELLOW = -1
