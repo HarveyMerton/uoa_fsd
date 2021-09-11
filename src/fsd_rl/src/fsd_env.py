@@ -6,17 +6,15 @@ import os
 import math
 import time
 import numpy as np
-#import tf
 
 from gym import utils, spaces
-from geometry_msgs.msg import Twist, Vector3Stamped, Pose
+from geometry_msgs.msg import Twist, Vector3Stamped, Pose, PoseArray, Point
 from geometry_msgs.msg import PoseWithCovarianceStamped, Quaternion, TransformStamped
 from sensor_msgs.msg import Imu
 from std_msgs.msg import Empty as EmptyTopicMsg
 from gym.utils import seeding
 from gym.envs.registration import register
 from gazebo_connection import GazeboConnection
-import tf2_ros
 
 from fsd_common_msgs.msg import ControlCommand
 from fssim_common.msg import ResState, State
@@ -24,30 +22,38 @@ from fssim_common.msg import ResState, State
 from sensor_msgs import point_cloud2
 from sensor_msgs.msg import PointCloud2
 from std_msgs.msg import Int16, Int32, Float32
-
-#from vesc_msgs.msg import *
+from cares_msgs.msg import MarkersPoseID
 
 
 #register the training environment in the gym as an available one
 reg = register(
     id='Fsd-v0',
     entry_point='fsd_env:FsdEnv',
-    max_episode_steps=1000
+    max_episode_steps=1000000
     )
 
 # Global constants
 THROTTLE_START = float(0.08)  # Starting throttle position (for initial acceleration)
 THROTTLE_START_TIME = 3.0  # Time to accelerate for
 THROTTLE_SET = float(0.037)  # Set throttle position
+
 NUM_CONES = 3  # Number of cones of each colour stored and used
+THRES_CONES = 500  # Marker id threshold (<= thres - blue otherwise, yellow)
 RANGE = 10  # Range of cameras (note that range is set in sensors_1.yaml)
+IDENT_BLUE = 1  # Identifiers for blue and yellow cones
+IDENT_YELLOW = -1
+
+STEER_LEFT_DIR = 1  # Steering angle sign when turning left 
 STEER_ANG_DEG_LIMIT = 45 # Estimate of steering angle limit in sim (at +1/-1)
 STEER_ANG_MIN = -0.4
 STEER_ANG_MAX = 0.4
 STEER_ANG_RATE_MAX = 180 # Deg/s
 
-IDENT_BLUE = 1  # Identifiers for blue and yellow cones
-IDENT_YELLOW = -1
+C_X = -0.10  # X position of camera in chassis CS (m)
+C_Y = 0  # Y position of camera in chassis CS (m)
+C_Z = 1.0  # Z position of camera in chassis CS (m)
+C_ALPHA_Y = (45*(math.pi/180))  # Camera angle of depression (rad)
+
 
 class FsdEnv(gym.Env):
 
@@ -63,12 +69,27 @@ class FsdEnv(gym.Env):
             rospy.Subscriber('/camera/cones', PointCloud2, self.callback_cones)  # Cone locations
 
             self.cmd_airl = rospy.Publisher('/control/pure_pursuit/control_command', ControlCommand, queue_size=5)
+
+            # Establish connection with simulator
+            self.gazebo = GazeboConnection()
+            rospy.set_param('/use_sim_time', 'true')
         else:
             print('Phys')
-            # rospy.Subscriber('aruco_detector', ,self.callback_cones_phys) # Cone positions - SERVICE
-            rospy.Subscriber('/physical/steering/norm_ang', Float32, self.callback_cmd_phys)  # Steering angle (Need linked/timed service??)
+            rospy.Subscriber('/stereo_pair/markers', MarkersPoseID, self.callback_cones_phys) 
+            rospy.Subscriber('/physical/steering/norm_ang', Float32, self.callback_cmd_phys)
 
-            self.cmd_phys = rospy.Publisher('/control/steering/norm_ang', Float32, queue_size=5)
+            self.cmd_phys = rospy.Publisher('/control_phys/steering/norm_ang', Float32, queue_size=5)
+
+            rospy.set_param('/use_sim_time', 'false')
+
+            # Camera CS transformation
+            P_A_BORG = np.transpose(np.array([[C_X, C_Y, C_Z]],np.float64))
+            R_A_B = np.array([[math.cos(C_ALPHA_Y), 0, math.sin(C_ALPHA_Y)], \
+                              [0, 1, 0],\
+                              [-math.sin(C_ALPHA_Y), 0, math.cos(C_ALPHA_Y)]],\
+                               np.float64)
+            
+            self.T_A_B = np.block([[R_A_B, P_A_BORG], [0,0,0,1.0]])
 
         # Define observation and action spaces
         # Observation space
@@ -150,24 +171,13 @@ class FsdEnv(gym.Env):
     def callback_cmd_phys(self, data_sa):
         self.phys_sa = data_sa
 
-        temp = Float32()
-        r = rospy.Rate(10)
-        while True:
-            #print(self.phys_sa.data)
-            temp.data = self.phys_sa.data
-            #print(temp)
-            self.cmd_phys.publish(temp)
-            r.sleep()
-
     # Stores current cone locations
     def callback_cones(self, data_pt_cloud):
         self.obs_cones = list(point_cloud2.read_points(data_pt_cloud, skip_nans=True, field_names=("x", "y", "probability_blue", "probability_yellow", "probability_orange", "probability_other")))
         
 
-    #TODO: Implement physical cones callback
     def callback_cones_phys(self, data_cones):
-        # Process input to make equivalent to simulation
-        self.obs_cones = data_cones
+        self.phys_cones = data_cones
 
     # Stores shutdown state
     def callback_res_state(self, data_res_state):
@@ -260,10 +270,22 @@ class FsdEnv(gym.Env):
             next_action = Float32()
             next_action.data = action
 
-            seconds_start_step = rospy.get_time()
-            while (rospy.get_time() - seconds_start_step) < self.running_step:
-                self.cmd_phys.publish(next_action)
+            # Publish next action and wait for running_step time
+            self.cmd_phys.publish(next_action)
+            
+            # Tell driver where to steer (in deg)
+            sa_current = self.phys_sa.data*STEER_ANG_DEG_LIMIT
+            sa_desired = next_action.data*STEER_ANG_DEG_LIMIT
+            
+            if(sa_desired >= sa_current): # Direction to turn
+                sa_dir = "L"
+            else: 
+                sa_dir = "R"
 
+            sa_diff = abs(sa_desired - sa_current) # Amount to turn
+
+            print("Error(D-C): {}:{}, Desired {}, Current: {}".format(sa_dir,sa_diff, sa_desired, sa_current))
+            rospy.sleep(self.running_step)
             observation = self.make_observation()
 
         # Get an evaluation based on what happened in the sim
@@ -296,24 +318,53 @@ class FsdEnv(gym.Env):
     def make_observation(self):
         cones_blue = list()  # Left side - list of tuples
         cones_yellow = list()  # Right side - list of tuples
+
         if self.sim_true:
+            # Steering angle
             steering_angle = self.obs_cmd.steering_angle.data
+
+            # Cones
+            curr_obs_cones = self.obs_cones
+            i = 0
+            while i < len(curr_obs_cones):
+                temp = curr_obs_cones[i]
+
+                # Assign cones to the correct lists based on the highest probability
+                if temp.index(max(temp[2:5])) == 2:  # Cone is blue
+                    cones_blue.append(temp[0:2])
+                elif temp.index(max(temp[2:5])) == 3:  # Cone is yellow
+                    cones_yellow.append(temp[0:2])
+                # elif temp.index(max(temp[2:5])) == 4:  # Cone is orange
+                #     # Treat as blue if on left of car, yellow if on right
+                i = i + 1
+
         else:
+            # Steering angle
             steering_angle = self.phys_sa.data
+ 
+            # Cones
+            curr_obs_cones = self.phys_cones
+            i = 0
+            while i < len(curr_obs_cones.marker_ids.data):
+                cone_id = curr_obs_cones.marker_ids.data[i]
+                cone_pos = curr_obs_cones.marker_poses.poses[i].position
+                cone_pos_trans = Point(0,0,0)
 
-        i = 0
-        curr_obs_cones = self.obs_cones
-        while i < len(curr_obs_cones):
-            temp = curr_obs_cones[i]
+                # Convert cone pos to chassis base co-ordinate system
+                P_B = np.transpose(np.array([[cone_pos.x, cone_pos.y, cone_pos.z, 1]],np.float64))
+                
+                P_A_1 = np.matmul(self.T_A_B, P_B)
+                P_A_1 = P_A_1.astype('float64')
+                cone_pos_trans.x = P_A_1[0,0]
+                cone_pos_trans.y = P_A_1[1,0]
+                cone_pos_trans.z = P_A_1[2,0]
 
-            # Assign cones to the correct lists based on the highest probability
-            if temp.index(max(temp[2:5])) == 2:  # Cone is blue
-                cones_blue.append(temp[0:2])
-            elif temp.index(max(temp[2:5])) == 3:  # Cone is yellow
-                cones_yellow.append(temp[0:2])
-            # elif temp.index(max(temp[2:5])) == 4:  # Cone is orange
-            #     # Treat as blue if on left of car, yellow if on right
-            i = i + 1
+                # Assign cones to the correct lists based on the highest probability
+                if cone_id <= THRES_CONES:  # Cone is blue
+                    cones_blue.append((cone_pos_trans.x,cone_pos_trans.y))
+                else:  # Cone is yellow
+                    cones_yellow.append((cone_pos_trans.x,cone_pos_trans.y))
+                i = i + 1    
 
         # Return only NUM_CONES
         cones_yellow = self.helper_closest_n_cones(cones_yellow, False)
@@ -324,7 +375,7 @@ class FsdEnv(gym.Env):
             "cones_blue": cones_blue,
             "steering_angle": steering_angle
         }
-
+        #print(observation)
         return observation
 
     ### HELPER FUNCTIONS ###
@@ -343,8 +394,8 @@ class FsdEnv(gym.Env):
         self.obs_cones = list()  # Cone positions relative to car
         self.shutdown = 0  # Vehicle quit due to emergency
 
-        self.phys_sa = Float32()
-        #self.phys_cones = None
+        self.phys_sa = Float32()  # Physical steering angle
+        self.phys_cones = MarkersPoseID()  # Physical cone positions
 
         self.observation_prev = self.make_observation()
         
@@ -443,6 +494,20 @@ class FsdEnv(gym.Env):
 
 
     ## CONES PROCESSING ##
+    # Transforms cones from the camera co-ordinate system to chassis CS
+    # def helper_cone_transform(self, input_pose, from_frame, to_frame):
+    #     tf_buffer = tf2_ros.Buffer()
+    #     listener = tf2_ros.TransformListener(tf_buffer)
+
+    #     pose_stamped = tf2_geometry_msgs.PoseStamped() 
+    #     pose_stamped.pose = input_pose
+    #     pose_stamped.header.frame_id = from_frame 
+    #     pose_stamped.header.stamp = rospy.Time.now()
+
+    #     try: 
+    #         output_pose_stamped = tf_buffer.transform
+
+
     # Finds the point (tuple (x,y)) at the centre of the furthest cone pair
     # currently observed. Returns (0,0) if either cone is at 0 or -ve
     def helper_point_furthest_center(self, observation):
