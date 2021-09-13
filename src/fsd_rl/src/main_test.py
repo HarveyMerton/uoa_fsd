@@ -50,8 +50,8 @@ if __name__ == '__main__':
     # default, buffer, rollout_length (2000 for Inv.P and 50000 for HOPPER), num_steps, eval_interval, env_id, algo, cuda, seed
     # ORIG params: size2000
     path_abs = os.path.dirname(os.path.abspath(__file__))
-    path_abs = path_abs + '/airl/buffers/Fsd-v0/size500000_std0.0_prand0.0.pth'
-    train_immitation_init(False, path_abs, 50000, 100000, 5000, 'Fsd-v0', 'airl', False, 0)
+    path_abs = path_abs + '/airl/buffers/Fsd-v0/size700000_std0.0_prand0.0.pth'
+    train_immitation_init(False, path_abs, 50000, 10 ** 6, 10 ** 4, 'Fsd-v0', 'airl', False, 0)
 
     # Run inference
     #weights_path = os.path.join(os.path.dirname(__file__), 'airl/weights/Fsd-v0.pth')

@@ -47,7 +47,7 @@ STEER_LEFT_DIR = 1  # Steering angle sign when turning left
 STEER_ANG_DEG_LIMIT = 45 # Estimate of steering angle limit in sim (at +1/-1)
 STEER_ANG_MIN = -0.4
 STEER_ANG_MAX = 0.4
-STEER_ANG_RATE_MAX = 180 # Deg/s
+STEER_ANG_RATE_MAX = 112.5 # Deg/s
 
 C_X = -0.10  # X position of camera in chassis CS (m)
 C_Y = 0  # Y position of camera in chassis CS (m)
@@ -82,7 +82,7 @@ class FsdEnv(gym.Env):
 
             rospy.set_param('/use_sim_time', 'false')
 
-            # Camera CS transformation
+            # Camera CS transformation (A is chassis, B is camera)
             P_A_BORG = np.transpose(np.array([[C_X, C_Y, C_Z]],np.float64))
             R_A_B = np.array([[math.cos(C_ALPHA_Y), 0, math.sin(C_ALPHA_Y)], \
                               [0, 1, 0],\
@@ -233,11 +233,11 @@ class FsdEnv(gym.Env):
         
         # Rate limiter
         # Check if rate limiting required
-        if abs(action-self.observation_prev["steering_angle"]) > self.rate_limit_sample:
-            if action > self.observation_prev["steering_angle"]:
-                action = self.observation_prev["steering_angle"] + self.rate_limit_sample
-            else:
-                action = self.observation_prev["steering_angle"] - self.rate_limit_sample
+        # if abs(action-self.observation_prev["steering_angle"]) > self.rate_limit_sample:
+        #     if action > self.observation_prev["steering_angle"]:
+        #         action = self.observation_prev["steering_angle"] + self.rate_limit_sample
+        #     else:
+        #         action = self.observation_prev["steering_angle"] - self.rate_limit_sample
 
         # Given the action selected by the learning algorithm,
         # we perform the corresponding movement of the robot
