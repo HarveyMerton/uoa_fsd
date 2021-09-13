@@ -1,3 +1,4 @@
+import os
 import torch
 from torch import nn
 from torch.optim import Adam
@@ -175,4 +176,9 @@ class PPO(Algorithm):
                 'stats/entropy', entropy.item(), self.learning_steps)
 
     def save_models(self, save_dir):
-        pass
+        super(PPO, self).save_models(save_dir)
+        # We only save actor to reduce workloads.
+        torch.save(
+            self.actor.state_dict(),
+            os.path.join(save_dir, 'actor.pth')
+        )

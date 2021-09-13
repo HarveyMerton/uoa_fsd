@@ -40,14 +40,15 @@ THROTTLE_SET = float(0.037)  # Set throttle position
 NUM_CONES = 3  # Number of cones of each colour stored and used
 THRES_CONES = 0  # Marker id threshold (<= thres - blue otherwise, yellow)
 RANGE = 10  # Range of cameras (note that range is set in sensors_1.yaml)
-#IDENT_BLUE = 1  # Identifiers for blue and yellow cones
-#IDENT_YELLOW = -1
+IDENT_BLUE = 1  # Identifiers for blue and yellow cones
+IDENT_YELLOW = -1
 
 STEER_LEFT_DIR = 1  # Steering angle sign when turning left 
-STEER_ANG_DEG_LIMIT = 45 # Estimate of steering angle limit in sim (at +1/-1)
+SA_LIM_SIM = 45 # Estimate of steering angle limit in sim (deg)
+SA_LIM_PHYS = 35 # Steering angle limit in physical system (deg)
 STEER_ANG_MIN = -0.4
 STEER_ANG_MAX = 0.4
-STEER_ANG_RATE_MAX = 67.5 # Deg/s
+STEER_ANG_RATE_MAX = 112.5 # Deg/s
 
 C_X = -0.10  # X position of camera in chassis CS (m)
 C_Y = 0  # Y position of camera in chassis CS (m)
@@ -78,11 +79,11 @@ class FsdEnv(gym.Env):
             rospy.Subscriber('/stereo_pair/markers', MarkersPoseID, self.callback_cones_phys) 
             rospy.Subscriber('/physical/steering/norm_ang', Float32, self.callback_cmd_phys)
 
-            self.cmd_phys = rospy.Publisher('/control_phys/steering/norm_ang', Float32, queue_size=5)
+            #self.cmd_phys = rospy.Publisher('/control_phys/steering/norm_ang', Float32, queue_size=5)
 
             rospy.set_param('/use_sim_time', 'false')
 
-            # Camera CS transformation
+            # Camera CS transformation (A is chassis, B is camera)
             P_A_BORG = np.transpose(np.array([[C_X, C_Y, C_Z]],np.float64))
             R_A_B = np.array([[math.cos(C_ALPHA_Y), 0, math.sin(C_ALPHA_Y)], \
                               [0, 1, 0],\
@@ -102,11 +103,16 @@ class FsdEnv(gym.Env):
         cones_x_high = np.full((2*NUM_CONES, 1), self.x_high)
         cones_y_low = np.full((2*NUM_CONES, 1), self.y_low)
         cones_y_high = np.full((2*NUM_CONES, 1), self.y_high)
-        #cones_col_low = np.full((2*NUM_CONES, 1), min(IDENT_BLUE, IDENT_YELLOW))
-        #cones_col_high = np.full((2*NUM_CONES, 1), max(IDENT_BLUE, IDENT_YELLOW))
+        
+        cones_col_low = np.full((2*NUM_CONES, 1), min(IDENT_BLUE, IDENT_YELLOW))
+        cones_col_high = np.full((2*NUM_CONES, 1), max(IDENT_BLUE, IDENT_YELLOW))
 
-        cones_low = np.concatenate((cones_x_low, cones_y_low), axis=1) #, cones_col_low
-        cones_high = np.concatenate((cones_x_high, cones_y_high), axis=1) #, cones_col_high
+        cones_low = np.concatenate((cones_x_low, cones_y_low, cones_col_low), axis=1) 
+        cones_high = np.concatenate((cones_x_high, cones_y_high, cones_col_high), axis=1) 
+        
+        self.cone_cnt_vector = [] #create vector to store number of cones passed
+        self.total_num_cones = 100 #total number of cones in track
+        self.num_cones_detected = 0
 
         # Flatten cones array
         cones_low = cones_low.flatten()
@@ -117,6 +123,10 @@ class FsdEnv(gym.Env):
         # Action space
         self.action_space = spaces.Box(low=float(STEER_ANG_MIN), high=float(STEER_ANG_MAX), shape=(1,), dtype=float)
 
+        # Establish connection with simulator
+        self.gazebo = GazeboConnection()
+        rospy.set_param('/use_sim_time', 'true')
+
         # gets training parameters from param server
         self.running_step = rospy.get_param("/running_step") # Step size/sample time
         self.rate_limit_sample = (STEER_ANG_RATE_MAX / STEER_ANG_DEG_LIMIT) * self.running_step # Maximum normalised ang rate (norm ang/sample)
@@ -124,6 +134,9 @@ class FsdEnv(gym.Env):
         # Set tracking instance variables
         self.np_random = self.cnt_step = self.cnt_lap = self.shutdown = 0  # Tracking variables
         self.observation_prev = None
+
+        # TimeStep Reward - Step Counter:
+        self.cnt_step_target = 0
 
         # Simulation-only vars
         self.obs_cmd = self.obs_cones = None  # Last "observed" command and cone positions
@@ -162,6 +175,7 @@ class FsdEnv(gym.Env):
     # Stores current cone locations
     def callback_cones(self, data_pt_cloud):
         self.obs_cones = list(point_cloud2.read_points(data_pt_cloud, skip_nans=True, field_names=("x", "y", "probability_blue", "probability_yellow", "probability_orange", "probability_other")))
+        
 
     def callback_cones_phys(self, data_cones):
         self.phys_cones = data_cones
@@ -185,6 +199,9 @@ class FsdEnv(gym.Env):
 
     # Resets the state of the environment and makes initial observation
     def reset(self):
+
+        #print("Number of cones detected: ", self.num_cones_detected)
+        #print("Track Passed: ", self.num_cones_detected/self.total_num_cones,"%")
         # 1st: resets the simulation to initial values
         # Kill and restart /automated_res
         if self.sim_true:
@@ -214,9 +231,9 @@ class FsdEnv(gym.Env):
         # Angle limiter
         # Clip action to limits (required as mlp in 'policy' outputs action in -1 -> 1 space)
         action = np.clip(action, self.action_space.low, self.action_space.high)
-        #
-        # # Rate limiter
-        # # Check if rate limiting required
+        
+        # Rate limiter
+        # Check if rate limiting required
         # if abs(action-self.observation_prev["steering_angle"]) > self.rate_limit_sample:
         #     if action > self.observation_prev["steering_angle"]:
         #         action = self.observation_prev["steering_angle"] + self.rate_limit_sample
@@ -255,11 +272,11 @@ class FsdEnv(gym.Env):
             next_action.data = action
 
             # Publish next action and wait for running_step time
-            self.cmd_phys.publish(next_action)
+            #self.cmd_phys.publish(next_action)
             
             # Tell driver where to steer (in deg)
-            sa_current = self.phys_sa.data*STEER_ANG_DEG_LIMIT
-            sa_desired = next_action.data*STEER_ANG_DEG_LIMIT
+            sa_current = self.phys_sa.data*SA_LIM_SIM
+            sa_desired = next_action.data*SA_LIM_SIM
             
             if(sa_desired >= sa_current): # Direction to turn
                 sa_dir = "L"
@@ -279,6 +296,7 @@ class FsdEnv(gym.Env):
         # Update variables
         self.cnt_step += 1
         self.observation_prev = observation
+        #print("STATE: {}".format(state))
 
         return state, reward, done, {}
 
@@ -292,7 +310,8 @@ class FsdEnv(gym.Env):
 
         # Calculate reward
         #reward = self.helper_reward_steps(observation, observation_prev, done)  # Reward for number of steps inside cones
-        reward = self.helper_reward_dist_local(observation_prev, done)  # Reward for moving to correct point
+        #reward = self.helper_reward_dist_local(observation_prev, done)  # Reward for moving to correct point
+        reward = self.helper_reward_timestep(observation_prev, done) # Reward for moving to correct point in a short time period
 
         return reward, done
 
@@ -367,6 +386,10 @@ class FsdEnv(gym.Env):
 
         self.cnt_step = 0  # Counter for number of steps
         self.cnt_lap = 0  # Counter for number of laps
+        self.cnt_step_target = 0 # Counter for number for steps for reward function 4
+
+        self.cone_cnt_vector = [] #create vector to store number of cones passed
+        self.num_cones_detected = 0
 
         self.obs_cmd = ControlCommand()  # Latest control command
         self.obs_cones = list()  # Cone positions relative to car
@@ -376,15 +399,16 @@ class FsdEnv(gym.Env):
         self.phys_cones = MarkersPoseID()  # Physical cone positions
 
         self.observation_prev = self.make_observation()
+        
 
     # Returns state of environment from observation (only cone positions)
     def helper_state_from_observation(self, observation):
         cones_blue_array = np.array(observation["cones_blue"])
         cones_yellow_array = np.array(observation["cones_yellow"])
-        #cones_identifiers = np.concatenate((np.full((NUM_CONES, 1), IDENT_BLUE), np.full((NUM_CONES, 1), IDENT_YELLOW)), axis=0)
+        cones_identifiers = np.concatenate((np.full((NUM_CONES, 1), IDENT_BLUE), np.full((NUM_CONES, 1), IDENT_YELLOW)), axis=0)
 
-        #observation = np.concatenate((np.concatenate((cones_blue_array, cones_yellow_array), axis=0), cones_identifiers), axis=1)
-        observation = np.concatenate((cones_blue_array, cones_yellow_array), axis=0)
+        observation = np.concatenate((np.concatenate((cones_blue_array, cones_yellow_array), axis=0), cones_identifiers), axis=1)
+        #observation = np.concatenate((cones_blue_array, cones_yellow_array), axis=0)
         observation = observation.flatten()
 
         return observation
@@ -419,6 +443,7 @@ class FsdEnv(gym.Env):
 
         # Find distance to right set of cones
 
+        # Find Estimated Time to Target
         return reward
 
     # Reward for moving towards centre between furthest cones
@@ -440,6 +465,32 @@ class FsdEnv(gym.Env):
                 #reward = max(RANGE/dist_to_target, RANGE/0.25)  # Reward based on inverse distance to target
                 reward = RANGE / dist_to_target
 
+        return reward
+
+    # Rewards agent for minimizing time taken to get to target (with radius)
+    def helper_reward_timestep(self, observation_prev, out_cones):
+        reward = 0
+        radius = 0.1 # Set a radius around target to make reaching easier
+        REWARD_SCALER = 10 #increase if reward is too low
+
+        if out_cones:
+            reward = -10
+        else:
+            target = self.helper_point_furthest_center(observation_prev)  # Find target point based on previous observation
+
+            if target[0] == 0 and target[1] == 0: # If invalid Target
+                reward = 1 #reward for staying inside cones
+
+            else: 
+                dist_list = self.helper_find_dist([target])
+                dist_to_target = dist_list[0]
+
+                if dist_to_target <= radius:
+                    time_diff = (self.cnt_step - self.cnt_step_target)
+                    reward = REWARD_SCALER/time_diff #higher reward for smaller time difference
+                    self.cnt_step_target = self.cnt_step
+                else:
+                    reward = 1 #reward for staying in the cones
         return reward
 
 
@@ -539,6 +590,11 @@ class FsdEnv(gym.Env):
             cone_list_n.append(cone_list_n[i % num_cones_orig])
 
             i = i + 1
+    
+    def helper_pass_cone_count(self):
+        percentage_cones = self.num_cones_detected/self.total_num_cones
+        return percentage_cones
+
 
     # def helper_reset(self):
         # self.gazebo.resetSim() # Creates "backwards in time" errors

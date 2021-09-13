@@ -7,6 +7,7 @@ import os
 
 from datetime import datetime
 from .buffer import Buffer
+from .connections import PPExpert
 
 from fsd_common_msgs.msg import ControlCommand
 from std_msgs.msg import Int32

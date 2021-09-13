@@ -13,13 +13,17 @@
 #include <std_msgs/Float32.h>
 //#include <ros_custom_msgs/ControlCommand.h>
 
+/* CONSTANTS */
+#define DIR_MULT -1 // For changing the sign of left/right turns
+#define SA_LIM_SIM 45 // For normalising SA (deg) - use sim limit for equivalence
+
 //I2C pins:
 //STM32: SDA: PB7 SCL: PB6
 //Arduino: SDA: A4 SCL: A5
 
 //---------------------------------------------------------------------------
 // Function prototypes
-void callback_sa_desired(const std_msgs::Float32 &msg);
+//void callback_sa_desired(const std_msgs::Float32 &msg);
 //void checkMagnetPresence();
 
 /* ROS CONNECTION */
@@ -28,15 +32,11 @@ std_msgs::Float32 sa_msg; //Steering angle message
 //fsd_common_msgs::ControlCommand sa_msg; //Steering angle message
 
 ros::Publisher sa_phys_pub("/physical/steering/norm_ang", &sa_msg);
-ros::Subscriber<std_msgs::Float32> sa_desired_sub("/control/steering/norm_ang", &callback_sa_desired);
+//ros::Subscriber<std_msgs::Float32> sa_desired_sub("/control/steering/norm_ang", &callback_sa_desired);
 
 
 /* GLOBAL VARS */
-// Tracking desired angle
-float desiredAng = 0.0;
-
-// Tracking physical angle
-int directionMultiplier = 1; // For changing the sign of left/right turns
+//float desiredAng = 0.0;
 
 int magnetStatus = 0; //value of the status register (MD, ML, MH)
 
@@ -72,19 +72,12 @@ void setup()
   // Sa setup
   ReadRawAngle(); //make a reading so the degAngle gets updated
   startAngle = degAngle; //update startAngle with degAngle - for taring
-  //delay(1000);
 }
 
 void loop()
 {    
-   // Desired steering angle
-   
-   
    // Physical steering angle
    publishPhysAng();
-
-   // Update screen
-   
    
    nh.spinOnce();
    delay(100); //wait a little - adjust it for "better resolution"
@@ -92,9 +85,9 @@ void loop()
 }
 
 // Callbacks
-void callback_sa_desired(const std_msgs::Float32 &msg) {
-  desiredAng = msg.data;
-}
+// void callback_sa_desired(const std_msgs::Float32 &msg) {
+//   desiredAng = msg.data;
+// }
 
 
 //Helper functions
@@ -108,11 +101,10 @@ void publishPhysAng(){
   
   // Publish physical steering angle
   sa_msg.data = normAngle; 
-  Serial.println("publishing");
+  //Serial.println("publishing");
   sa_phys_pub.publish(&sa_msg);
   
 }
-
 
 
 void ReadRawAngle()
@@ -157,8 +149,8 @@ void ReadRawAngle()
   degAngle = rawAngle * 0.087890625; 
 
   
-  Serial.print("Deg angle: ");
-  Serial.println(degAngle, 2); //absolute position of the encoder within the 0-360 circle
+  //Serial.print("Deg angle: ");
+  //Serial.println(degAngle, 2); //absolute position of the encoder within the 0-360 circle
   
 }
 
@@ -276,7 +268,7 @@ void normalAngle(){
   }else{
     normAngle = degAngle;
   }
-  normAngle = (normAngle/180.0)*directionMultiplier;
-  Serial.println("Steering Angle: ");
+  normAngle = (normAngle/SA_LIM_SIM)*DIR_MULT;
+  Serial.println("Normalised Angle: ");
   Serial.println(normAngle);
 }

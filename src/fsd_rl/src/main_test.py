@@ -41,17 +41,21 @@ if __name__ == '__main__':
     # Collect expert demonstrations
     # default, sac_expert, weight_ip (expert weights for SAC), env_id_ip, buffer_size_ip, std_ip, p_rand_ip, cuda_ip, seed_ip
     # ORIG params: buffer size 10 ** 6
-    # collect_demo_init(False, False, None, 'Fsd-v0', 5*10**4, 0.0, 0.0, False, 0) # 7 hr
+    #path_abs = os.path.dirname(os.path.abspath(__file__))
+    #path_abs = path_abs + '/airl/weights/Fsd-v0.pth'
+    #collect_demo_init(False, True, path_abs, 'Fsd-v0', 5*10**5, 0.0, 0.0, False, 0) # 17 hr
     # collect_demo_init(False, False, None, 'Fsd-v0', 2000, 0.0, 0.0, False, 0)  # 2 runs of just over 5 laps
 
     # Train AIRL inverse reinforcement learning
     # default, buffer, rollout_length (2000 for Inv.P and 50000 for HOPPER), num_steps, eval_interval, env_id, algo, cuda, seed
     # ORIG params: size2000
-    # train_immitation_init(False, 'buffers/Fsd-v0/size15_std0.0_prand0.0.pth', 50000, 100000, 5000, 'Fsd-v0', 'airl', False, 0)
+    path_abs = os.path.dirname(os.path.abspath(__file__))
+    path_abs = path_abs + '/airl/buffers/Fsd-v0/size700000_std0.0_prand0.0.pth'
+    train_immitation_init(False, path_abs, 50000, 10 ** 6, 10 ** 4, 'Fsd-v0', 'airl', False, 0)
 
     # Run inference
-    weights_path = os.path.join(os.path.dirname(__file__), 'airl/weights/Fsd-v0.pth')
-    run_inference_init(True, 'sac', weights_path, 'Fsd-v0', False)
+    #weights_path = os.path.join(os.path.dirname(__file__), 'airl/weights/Fsd-v0.pth')
+    #run_inference_init(True, 'sac', weights_path, 'Fsd-v0', False)
 
     print("End")
 
