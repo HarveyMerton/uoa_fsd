@@ -26,6 +26,24 @@ class PPExpert():
     def get_expert_action(self):
         return np.array([self.obs_cmd.steering_angle.data])
 
+# Connection to simulator
+class SimConnection():
+    def __init__(self):
+        # Subscribe to pure pursuit expert
+        rospy.Subscriber('/control/pure_pursuit/control_command', ControlCommand, self.callback_sa)  # Simulated action
+
+        # Set instance variables for tracking
+        self.obs_sa = ControlCommand()
+
+    ### CALLBACKS ###
+    # Stores the current command sent
+    def callback_sa(self, data_sa):
+        self.obs_sa = data_sa
+
+    ### FUNCTIONS ###
+    def get_sim_sa(self):
+        return np.array([self.obs_sa.steering_angle.data])
+
 # Connection to physical
 class PhysicalConnection():
     def __init__(self):
