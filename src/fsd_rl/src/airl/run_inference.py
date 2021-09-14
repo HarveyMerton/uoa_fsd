@@ -9,7 +9,7 @@ from datetime import datetime
 from gail_airl_ppo.utils import log_make
 from gail_airl_ppo.env import make_env
 from gail_airl_ppo.algo import SACExpert
-from gail_airl_ppo.connections import PPExpert, PhysicalConnection
+from gail_airl_ppo.connections import PPExpert, PhysicalConnection, SimConnection
 from std_msgs.msg import Int16
 
 from collections import namedtuple
@@ -30,8 +30,8 @@ def run(args):
 
     # Create logfile
     file_log = open(log_make_inference(args), "a")
-    #file_log.writelines(['Step_num', ' ', 'Done_flag', ' ', 'Time_total', ' ', 'Action', ' ', 'Action other (expert for sim otherwise physical) ', '\n'])
-    file_log.writelines(['Step_num', ' ', 'Done_flag', ' ', 'Time_total', ' ', 'Action',' ','% Total Cones Passed', ' ', 'Action other (expert for sim otherwise physical) ', '\n'])
+    file_log.writelines(['Step_num', ' ', 'Done_flag', ' ', 'Time_total', ' ', 'Action', ' ', 'Action other (expert for sim otherwise physical) ', '\n'])
+    #file_log.writelines(['Step_num', ' ', 'Done_flag', ' ', 'Time_total', ' ', 'Action',' ','% Total Cones Passed', ' ', 'Action other (expert for sim otherwise physical) ', '\n'])
 
     # Set variables
     cnt_step = 0  # Time step counter
@@ -44,10 +44,14 @@ def run(args):
     torch.cuda.manual_seed(seed)
     state = env.reset()
 
+    # Initialise expert and
+    # subscribe to actually executed actions (accounts for env limits)
     if args.sim:
         pp_expert = PPExpert()  # Expert for action comparison
+        sim_system = SimConnection()  # Simulated action
     else:
         phys_system = PhysicalConnection()  # Physical action
+
 
     while True:
         cnt_step += 1
@@ -57,15 +61,16 @@ def run(args):
 
         if args.sim:  # In simulation
             next_state, _, done, _ = env.step(action)  # Take step in simulated environment
+            action_actual = sim_system.get_sim_sa()  # Get actually executed sa
             action_other = pp_expert.get_expert_action()  # Get expert action for comparison
-            percentage_cones = env.helper_pass_cone_count() # Get percentage of passed cones
+            #percentage_cones = env.helper_pass_cone_count() # Get percentage of passed cones
         else:  # In physical world
             next_state, _, done, _ = env.step(action)  # Take step in real environment
-            action_other = 0 #phys_system.get_physical_sa()  # Get physical steering angle for comparison
+            action_actual = 0 #phys_system.get_physical_sa()  # Get physical steering angle for comparison
 
         # Write to log file
-        #file_log.writelines([str(cnt_step), ' ', str(done), ' ', str(cnt_step * step_size), ' ', str(action), ' ', str(action_other), ' ', '\n'])
-        file_log.writelines([str(cnt_step), ' ', str(done), ' ', str(cnt_step * step_size), ' ', str(action), ' ',str(percentage_cones),' ', str(action_other), ' ', '\n'])
+        file_log.writelines([str(cnt_step), ' ', str(done), ' ', str(cnt_step * step_size), ' ', str(action_actual), ' ', str(action_other), ' ', '\n'])
+        #file_log.writelines([str(cnt_step), ' ', str(done), ' ', str(cnt_step * step_size), ' ', str(action_actual), ' ',str(percentage_cones),' ', str(action_other), ' ', '\n'])
 
         # Update state
         state = next_state

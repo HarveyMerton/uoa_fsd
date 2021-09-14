@@ -33,13 +33,9 @@ reg = register(
     )
 
 # Global constants
-THROTTLE_START = float(0.08)  # Starting throttle position (for initial acceleration)
-THROTTLE_START_TIME = 3.0  # Time to accelerate for
-THROTTLE_SET = float(0.037)  # Set throttle position
-
 NUM_CONES = 3  # Number of cones of each colour stored and used
 THRES_CONES = 500  # Marker id threshold (<= thres - blue otherwise, yellow)
-RANGE = 10  # Range of cameras (note that range is set in sensors_1.yaml)
+RANGE = 4 #10  # Range of cameras (note that range is set in sensors_1.yaml)
 IDENT_BLUE = 1  # Identifiers for blue and yellow cones
 IDENT_YELLOW = -1
 
@@ -127,13 +123,26 @@ class FsdEnv(gym.Env):
         self.gazebo = GazeboConnection()
         rospy.set_param('/use_sim_time', 'true')
 
-        # gets training parameters from param server
+        # gets parameters from param server
         self.running_step = rospy.get_param("/running_step") # Step size/sample time
-        self.rate_limit_sample = (STEER_ANG_RATE_MAX / STEER_ANG_DEG_LIMIT) * self.running_step # Maximum normalised ang rate (norm ang/sample)
+        self.rate_limit_sample = (STEER_ANG_RATE_MAX / SA_LIM_SIM) * self.running_step # Maximum normalised ang rate (norm ang/sample)
+
+        robot_name = rospy.get_param("robot_name")
+
+        if robot_name == "gotthard": 
+            self.throttle_start = float(0.08)
+            self.throttle_start_time = 3.0
+            self.throttle_set = float(0.037)
+        elif robot_name == "physical":
+            self.throttle_start = float(0.04)
+            self.throttle_start_time = 6.0
+            self.throttle_set = float(0.0359)
 
         # Set tracking instance variables
         self.np_random = self.cnt_step = self.cnt_lap = self.shutdown = 0  # Tracking variables
         self.observation_prev = None
+
+        self.start_time = 0
 
         # TimeStep Reward - Step Counter:
         self.cnt_step_target = 0
@@ -186,8 +195,12 @@ class FsdEnv(gym.Env):
 
     # Stores number of laps
     def callback_lap(self, data_cnt_lap):
-        self.cnt_lap = data_cnt_lap.data
-
+        # To counter initial pose being on other side of finish line
+        if (rospy.get_time() - self.start_time) < 10 and data_cnt_lap.data == 2:
+            self.cnt_lap = 1
+        else:
+            self.cnt_lap = data_cnt_lap.data
+        
     # def callback_init_pose(self, data_init_pose):
     #     self.init_pose = data_init_pose
 
@@ -234,11 +247,11 @@ class FsdEnv(gym.Env):
         
         # Rate limiter
         # Check if rate limiting required
-        # if abs(action-self.observation_prev["steering_angle"]) > self.rate_limit_sample:
-        #     if action > self.observation_prev["steering_angle"]:
-        #         action = self.observation_prev["steering_angle"] + self.rate_limit_sample
-        #     else:
-        #         action = self.observation_prev["steering_angle"] - self.rate_limit_sample
+        if abs(action-self.observation_prev["steering_angle"]) > self.rate_limit_sample:
+            if action > self.observation_prev["steering_angle"]:
+                action = self.observation_prev["steering_angle"] + self.rate_limit_sample
+            else:
+                action = self.observation_prev["steering_angle"] - self.rate_limit_sample
 
         # Given the action selected by the learning algorithm,
         # we perform the corresponding movement of the robot
@@ -257,10 +270,10 @@ class FsdEnv(gym.Env):
             # Send command to sim for running time
             while (rospy.get_time() - seconds_start_step) < self.running_step:
                 # Send higher throttle command when accelerating at start
-                if self.running_step*self.cnt_step < THROTTLE_START_TIME:
-                    next_action.throttle.data = THROTTLE_START
+                if self.running_step*self.cnt_step < self.throttle_start_time:
+                    next_action.throttle.data = self.throttle_start
                 else:
-                    next_action.throttle.data = THROTTLE_SET
+                    next_action.throttle.data = self.throttle_set
 
                 self.cmd_airl.publish(next_action)
 
@@ -272,7 +285,7 @@ class FsdEnv(gym.Env):
             next_action.data = action
 
             # Publish next action and wait for running_step time
-            #self.cmd_phys.publish(next_action)
+            self.cmd_phys.publish(next_action)
             
             # Tell driver where to steer (in deg)
             sa_current = self.phys_sa.data*SA_LIM_SIM
@@ -399,6 +412,8 @@ class FsdEnv(gym.Env):
         self.phys_cones = MarkersPoseID()  # Physical cone positions
 
         self.observation_prev = self.make_observation()
+
+        self.start_time = rospy.get_time()
         
 
     # Returns state of environment from observation (only cone positions)
