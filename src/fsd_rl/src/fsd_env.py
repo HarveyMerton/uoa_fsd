@@ -284,7 +284,6 @@ class FsdEnv(gym.Env):
         else:  # Step in physical world
             next_action = Float32()
             next_action.data = action[0]
-            #print(next_action)
 
             # Publish next action (for logging ideal action)
             self.cmd_phys.publish(next_action)
@@ -304,6 +303,7 @@ class FsdEnv(gym.Env):
             #print("Error(D-C): {}:{}, Desired {}, Current: {}".format(sa_dir,sa_diff, sa_desired, sa_current))
             print("{}:{}".format(sa_dir,sa_diff))
             rospy.sleep(self.running_step)
+
             observation = self.make_observation()
 
         # Get an evaluation based on what happened in the sim
@@ -313,7 +313,7 @@ class FsdEnv(gym.Env):
         # Update variables
         self.cnt_step += 1
         self.observation_prev = observation
-        #print("STATE: {}".format(state))
+        print("STATE: {}".format(state))
 
         return state, reward, done, {}
 
@@ -393,7 +393,7 @@ class FsdEnv(gym.Env):
             "cones_blue": cones_blue,
             "steering_angle": steering_angle
         }
-        #print(observation)
+
         return observation
 
     ### HELPER FUNCTIONS ###
