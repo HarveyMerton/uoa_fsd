@@ -65,7 +65,7 @@ def run(args):
         else:  # In physical world
             next_state, _, done, _ = env.step(action)  # Take step in real environment
             action_actual = phys_system.get_physical_sa()  # Get current physical steering angle
-            action_other = phys_system.get_physical_sa_desired()  # Get commanded physical steering angle for comparison
+            action_other = 0 #phys_system.get_physical_sa_desired()  # Get commanded physical steering angle for comparison (CAUSES CODE TO PAUSE)
 
         # Write to log file
         file_log.writelines([str(cnt_step), ' ', str(done), ' ', str(cnt_step * step_size), ' ', str(action_actual), ' ', str(action_other), ' ', '\n'])
