@@ -66,7 +66,8 @@ def run(args):
             #percentage_cones = env.helper_pass_cone_count() # Get percentage of passed cones
         else:  # In physical world
             next_state, _, done, _ = env.step(action)  # Take step in real environment
-            action_actual = 0 #phys_system.get_physical_sa()  # Get physical steering angle for comparison
+            action_actual = phys_system.get_physical_sa()  # Get physical steering angle for comparison
+            action_other = 0
 
         # Write to log file
         file_log.writelines([str(cnt_step), ' ', str(done), ' ', str(cnt_step * step_size), ' ', str(action_actual), ' ', str(action_other), ' ', '\n'])

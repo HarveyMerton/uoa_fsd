@@ -14,7 +14,7 @@
 //#include <ros_custom_msgs/ControlCommand.h>
 
 /* CONSTANTS */
-#define DIR_MULT -1 // For changing the sign of left/right turns
+#define DIR_MULT 1 // For changing the sign of left/right turns
 #define SA_LIM_SIM 45 // For normalising SA (deg) - use sim limit for equivalence
 
 //I2C pins:
@@ -244,12 +244,12 @@ void checkMagnetPresence()
     Wire.requestFrom(0x36, 1); //request from the sensor
 
     while(Wire.available() == 0){ //wait until it becomes available 
-      Serial.println("Waiting for sensor available. Check wiring."); 
+     //Serial.println("Waiting for sensor available. Check wiring."); 
     }
     magnetStatus = Wire.read(); //Reading the data after the request
     
-    Serial.print("Magnet status: ");
-    Serial.println(magnetStatus, BIN); //print it in binary so you can compare it to the table (fig 21)    
+   //Serial.print("Magnet status: ");
+   //Serial.println(magnetStatus, BIN); //print it in binary so you can compare it to the table (fig 21)    
     delay(10);  
   }      
   
@@ -263,12 +263,14 @@ void checkMagnetPresence()
 }
 
 void normalAngle(){
+  float normAngle_temp = 0.0;
+  
   if(degAngle > 180){
-    normAngle = degAngle - 360;
+    normAngle_temp = degAngle - 360;
   }else{
-    normAngle = degAngle;
+    normAngle_temp = degAngle;
   }
-  normAngle = (normAngle/SA_LIM_SIM)*DIR_MULT;
-  Serial.println("Normalised Angle: ");
-  Serial.println(normAngle);
+  normAngle = (normAngle_temp/SA_LIM_SIM)*DIR_MULT;
+  //Serial.println("Normalised Angle: ");
+  //Serial.println(normAngle);
 }

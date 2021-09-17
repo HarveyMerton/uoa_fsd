@@ -70,6 +70,18 @@ class FsdEnv(gym.Env):
             # Establish connection with simulator
             self.gazebo = GazeboConnection()
             rospy.set_param('/use_sim_time', 'true')
+
+            robot_name = rospy.get_param("robot_name")
+
+            if robot_name == "gotthard": 
+                self.throttle_start = float(0.08)
+                self.throttle_start_time = 3.0
+                self.throttle_set = float(0.037)
+            elif robot_name == "physical":
+                self.throttle_start = float(0.04)
+                self.throttle_start_time = 6.0
+                self.throttle_set = float(0.0359)
+
         else:
             print('Phys')
             rospy.Subscriber('/stereo_pair/markers', MarkersPoseID, self.callback_cones_phys) 
@@ -126,17 +138,6 @@ class FsdEnv(gym.Env):
         # gets parameters from param server
         self.running_step = rospy.get_param("/running_step") # Step size/sample time
         self.rate_limit_sample = (STEER_ANG_RATE_MAX / SA_LIM_SIM) * self.running_step # Maximum normalised ang rate (norm ang/sample)
-
-        robot_name = rospy.get_param("robot_name")
-
-        if robot_name == "gotthard": 
-            self.throttle_start = float(0.08)
-            self.throttle_start_time = 3.0
-            self.throttle_set = float(0.037)
-        elif robot_name == "physical":
-            self.throttle_start = float(0.04)
-            self.throttle_start_time = 6.0
-            self.throttle_set = float(0.0359)
 
         # Set tracking instance variables
         self.np_random = self.cnt_step = self.cnt_lap = self.shutdown = 0  # Tracking variables
@@ -241,10 +242,6 @@ class FsdEnv(gym.Env):
 
     # Performs a single step in the environment
     def step(self, action):
-        # Angle limiter
-        # Clip action to limits (required as mlp in 'policy' outputs action in -1 -> 1 space)
-        action = np.clip(action, self.action_space.low, self.action_space.high)
-        
         # Rate limiter
         # Check if rate limiting required
         if abs(action-self.observation_prev["steering_angle"]) > self.rate_limit_sample:
@@ -252,6 +249,10 @@ class FsdEnv(gym.Env):
                 action = self.observation_prev["steering_angle"] + self.rate_limit_sample
             else:
                 action = self.observation_prev["steering_angle"] - self.rate_limit_sample
+
+        # Angle limiter
+        # Clip action to limits (required as mlp in 'policy' outputs action in -1 -> 1 space)
+        action = np.clip(action, self.action_space.low, self.action_space.high)
 
         # Given the action selected by the learning algorithm,
         # we perform the corresponding movement of the robot
@@ -282,23 +283,26 @@ class FsdEnv(gym.Env):
 
         else:  # Step in physical world
             next_action = Float32()
-            next_action.data = action
+            next_action.data = action[0]
+            #print(next_action)
 
             # Publish next action and wait for running_step time
-            self.cmd_phys.publish(next_action)
+            #self.cmd_phys.publish(next_action)
             
             # Tell driver where to steer (in deg)
             sa_current = self.phys_sa.data*SA_LIM_SIM
             sa_desired = next_action.data*SA_LIM_SIM
             
             if(sa_desired >= sa_current): # Direction to turn
-                sa_dir = "L"
+                sa_dir = "Left"
             else: 
-                sa_dir = "R"
+                sa_dir = "Right"
 
             sa_diff = abs(sa_desired - sa_current) # Amount to turn
+            sa_diff = round(sa_diff,0)
 
-            print("Error(D-C): {}:{}, Desired {}, Current: {}".format(sa_dir,sa_diff, sa_desired, sa_current))
+            #print("Error(D-C): {}:{}, Desired {}, Current: {}".format(sa_dir,sa_diff, sa_desired, sa_current))
+            print("{}:{}".format(sa_dir,sa_diff))
             rospy.sleep(self.running_step)
             observation = self.make_observation()
 
