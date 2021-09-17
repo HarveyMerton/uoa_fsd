@@ -49,7 +49,7 @@ class PhysicalConnection():
     def __init__(self):
         # Subscribe to actual steering angle and desired steering angle
         rospy.Subscriber('/physical/steering/norm_ang', Float32, self.callback_sa)
-        rospy.Subscriber('/control_phys/steering/norm_ang', Float32, self.callback_desired)
+        rospy.Subscriber('/control_phys/steering/norm_ang', Float32, self.callback_sa_desired)
 
         # Set instance variables for tracking
         self.obs_sa = Float32()
