@@ -25,12 +25,10 @@ def run(args):
             device=torch.device("cuda" if args.cuda else "cpu"),
             path=args.weight
         )
-    else:
-        algo = False
 
     # Create logfile
     file_log = open(log_make_inference(args), "a")
-    file_log.writelines(['Step_num', ' ', 'Done_flag', ' ', 'Time_total', ' ', 'Action', ' ', 'Action other (expert for sim otherwise physical) ', '\n'])
+    file_log.writelines(['Step_num', ' ', 'Done_flag', ' ', 'Time_total', ' ', 'Action', ' ', 'Action other (expert for sim, desired for physical) ', '\n'])
     #file_log.writelines(['Step_num', ' ', 'Done_flag', ' ', 'Time_total', ' ', 'Action',' ','% Total Cones Passed', ' ', 'Action other (expert for sim otherwise physical) ', '\n'])
 
     # Set variables
@@ -66,8 +64,8 @@ def run(args):
             #percentage_cones = env.helper_pass_cone_count() # Get percentage of passed cones
         else:  # In physical world
             next_state, _, done, _ = env.step(action)  # Take step in real environment
-            action_actual = phys_system.get_physical_sa()  # Get physical steering angle for comparison
-            action_other = 0
+            action_actual = phys_system.get_physical_sa()  # Get current physical steering angle
+            action_other = phys_system.get_physical_sa_desired()  # Get commanded physical steering angle for comparison
 
         # Write to log file
         file_log.writelines([str(cnt_step), ' ', str(done), ' ', str(cnt_step * step_size), ' ', str(action_actual), ' ', str(action_other), ' ', '\n'])

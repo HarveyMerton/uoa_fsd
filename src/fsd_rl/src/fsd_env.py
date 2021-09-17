@@ -87,7 +87,7 @@ class FsdEnv(gym.Env):
             rospy.Subscriber('/stereo_pair/markers', MarkersPoseID, self.callback_cones_phys) 
             rospy.Subscriber('/physical/steering/norm_ang', Float32, self.callback_cmd_phys)
 
-            #self.cmd_phys = rospy.Publisher('/control_phys/steering/norm_ang', Float32, queue_size=5)
+            self.cmd_phys = rospy.Publisher('/control_phys/steering/norm_ang', Float32, queue_size=5)
 
             rospy.set_param('/use_sim_time', 'false')
 
@@ -286,8 +286,8 @@ class FsdEnv(gym.Env):
             next_action.data = action[0]
             #print(next_action)
 
-            # Publish next action and wait for running_step time
-            #self.cmd_phys.publish(next_action)
+            # Publish next action (for logging ideal action)
+            self.cmd_phys.publish(next_action)
             
             # Tell driver where to steer (in deg)
             sa_current = self.phys_sa.data*SA_LIM_SIM

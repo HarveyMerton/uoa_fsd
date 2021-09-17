@@ -47,17 +47,26 @@ class SimConnection():
 # Connection to physical
 class PhysicalConnection():
     def __init__(self):
-        # Subscribe to pure pursuit expert
+        # Subscribe to actual steering angle and desired steering angle
         rospy.Subscriber('/physical/steering/norm_ang', Float32, self.callback_sa)
+        rospy.Subscriber('/control_phys/steering/norm_ang', Float32, self.callback_desired)
 
         # Set instance variables for tracking
         self.obs_sa = Float32()
+        self.des_sa = Float32()
 
     ### CALLBACKS ###
-    # Stores the current command sent
+    # Stores the current steering angle
     def callback_sa(self, data_sa):
         self.obs_sa = data_sa
+
+    # Stores the current desired angle
+    def callback_sa_desired(self, data_sa_des):
+        self.des_sa = data_sa_des
 
     ### FUNCTIONS ###
     def get_physical_sa(self):
         return np.array([self.obs_sa.data])
+
+    def get_physical_sa_desired(self):
+        return np.array([self.des_sa.data])
