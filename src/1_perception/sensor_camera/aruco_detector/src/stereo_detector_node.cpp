@@ -79,7 +79,9 @@ void callback(const sensor_msgs::ImageConstPtr &image_left_msg,
   ids.layout.dim[0].size = markers.size();
   ids.layout.dim[0].stride = 1;
 
-  for(auto marker_info : markers){
+
+  for(auto const& marker_info : markers){
+
     int id = marker_info.first;
     geometry_msgs::Pose marker = marker_info.second;
     poses.poses.push_back(marker);

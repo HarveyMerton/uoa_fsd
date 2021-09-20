@@ -149,8 +149,8 @@ void ReadRawAngle()
   degAngle = rawAngle * 0.087890625; 
 
   
-  //Serial.print("Deg angle: ");
-  //Serial.println(degAngle, 2); //absolute position of the encoder within the 0-360 circle
+  Serial.print("Deg angle: ");
+  Serial.println(degAngle, 2); //absolute position of the encoder within the 0-360 circle
   
 }
 
@@ -248,8 +248,8 @@ void checkMagnetPresence()
     }
     magnetStatus = Wire.read(); //Reading the data after the request
     
-   //Serial.print("Magnet status: ");
-   //Serial.println(magnetStatus, BIN); //print it in binary so you can compare it to the table (fig 21)    
+   Serial.print("Magnet status: ");
+   Serial.println(magnetStatus, BIN); //print it in binary so you can compare it to the table (fig 21)    
     delay(10);  
   }      
   
@@ -258,7 +258,7 @@ void checkMagnetPresence()
   //ML: Too weak magnet - 10111 - DEC: 23     
   //MD: OK magnet - 110111 - DEC: 55
 
-  //Serial.println("Magnet found!");
+  Serial.println("Magnet found!");
   //delay(1000);  
 }
 

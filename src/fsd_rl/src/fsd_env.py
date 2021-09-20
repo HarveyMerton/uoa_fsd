@@ -34,14 +34,14 @@ reg = register(
 
 # Global constants
 NUM_CONES = 3  # Number of cones of each colour stored and used
-THRES_CONES = 0  # Marker id threshold (<= thres - blue otherwise, yellow)
+THRES_CONES = 7  # Marker id threshold (<= thres - blue otherwise, yellow)
 RANGE = 10  # Range of cameras (note that range is set in sensors_1.yaml)
 IDENT_BLUE = 1  # Identifiers for blue and yellow cones
 IDENT_YELLOW = -1
 
 STEER_LEFT_DIR = 1  # Steering angle sign when turning left 
 SA_LIM_SIM = 45 # Estimate of steering angle limit in sim (deg)
-SA_LIM_PHYS = 35 # Steering angle limit in physical system (deg)
+SA_LIM_PHYS = 25 # Steering angle limit in physical system (deg)
 STEER_ANG_MIN = -0.4
 STEER_ANG_MAX = 0.4
 STEER_ANG_RATE_MAX = 112.5 # Deg/s
