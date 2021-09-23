@@ -88,22 +88,22 @@ sensors:
       noise_sigma: 0.002                  # Additive gassian noise on delay 
     cut_cones_below_x:            0.5 #-1.0     # Cut cones that are further than this distance in x car axis
     observation_radius:           10.0    # Below this threshold we can observe cones [m]
-    distance_dependent_observation: 100.0 # The probability of observation decreases with factor = -1/distance_dependent_misclass * r + 1
+    distance_dependent_observation: 100000.0 #100.0 # The probability of observation decreases with factor = -1/distance_dependent_misclass * r + 1
     observation_likelihood_left:  1.0     # Likelihood of observing left              [0..1]
     observation_likelihood_right: 1.0     # Likelihood of observing right             [0..1]
     observation_likelihood_orange: 1.0    # Likelihood of observing right             [0..1]
     
     color_observation_radius:     10.0    # We can obser color only below this threshild [m]
-    distance_dependent_misclass:  200.0   # The probability of color observation decreases with factor = -1/distance_dependent_misclass * r + 1
-    likelihood_yellow:            0.99     # Likelihood of observic color of cones left  [0..1]
-    likelihood_blue:              0.99     # Likelihood of observic color of cones right [0..1]
-    likelihood_orange:            0.99     # Likelihood of observic color of cones right [0..1]
+    distance_dependent_misclass:  100000.0 #200.0   # The probability of color observation decreases with factor = -1/distance_dependent_misclass * r + 1
+    likelihood_yellow:            1.0 #0.99     # Likelihood of observic color of cones left  [0..1]
+    likelihood_blue:              1.0 #0.99     # Likelihood of observic color of cones right [0..1]
+    likelihood_orange:            1.0 #0.99     # Likelihood of observic color of cones right [0..1]
 
     gaussian_noise_xy_mu:         0.0     # Mean of Gaussian noise on [x,y] cone position
     gaussian_noise_xy_sigma:      0.0     # Variance of Gaussian noise on [x,y] cone position
 
     gaussian_noise_mu_radial:     0.0     # Mean of Gaussian noise on r (cone position is described with [r,\theta]) cone position (radial coordinates)
-    gaussian_noise_sigma_radial:  0.2    # Variance of Gaussian noise on r (cone position is described with [r,\theta]) cone position (radial coordinates)
+    gaussian_noise_sigma_radial:  0.0 #0.2    # Variance of Gaussian noise on r (cone position is described with [r,\theta]) cone position (radial coordinates)
 
     gaussian_noise_mu_angular:    0.00    # Mean of Gaussian noise on \theta (cone position is described with [r,\theta]) cone position (radial coordinates)
-    gaussian_noise_sigma_angular: 0.007   # Variance of Gaussian noise on r (cone position is described with [r,\theta]) cone position (radial coordinates)
+    gaussian_noise_sigma_angular: 0.0 #0.007   # Variance of Gaussian noise on r (cone position is described with [r,\theta]) cone position (radial coordinates)
