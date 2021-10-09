@@ -24,6 +24,8 @@ from sensor_msgs.msg import PointCloud2
 from std_msgs.msg import Int16, Int32, Float32
 from cares_msgs.msg import MarkersPoseID
 
+from airl.gail_airl_ppo.connections import PPExpert
+
 
 #register the training environment in the gym as an available one
 reg = register(
@@ -45,6 +47,8 @@ SA_LIM_PHYS = 25 # Steering angle limit in physical system (deg)
 STEER_ANG_MIN = -0.4
 STEER_ANG_MAX = 0.4
 STEER_ANG_RATE_MAX = 112.5 # Deg/s
+
+THROTTLE_USE_EXPERT = 1 # 1 = use PPExpert for throttle, 0 = use fixed values 
 
 C_X = -0.10  # X position of camera in chassis CS (m)
 C_Y = 0  # Y position of camera in chassis CS (m)
@@ -73,14 +77,20 @@ class FsdEnv(gym.Env):
 
             robot_name = rospy.get_param("robot_name")
 
-            if robot_name == "gotthard": 
-                self.throttle_start = float(0.08)
-                self.throttle_start_time = 3.0
-                self.throttle_set = float(0.037)
-            elif robot_name == "physical":
-                self.throttle_start = float(0.04)
-                self.throttle_start_time = 6.0
-                self.throttle_set = float(0.0359)
+            # For setting speed 
+            if THROTTLE_USE_EXPERT == 1:
+                # Use PP throttle value
+                self.pp_expert = PPExpert()
+            else: 
+                # Set throttle values
+                if robot_name == "gotthard": 
+                    self.throttle_start = float(0.08)
+                    self.throttle_start_time = 3.0
+                    self.throttle_set = float(0.037)
+                elif robot_name == "physical":
+                    self.throttle_start = float(0.04)
+                    self.throttle_start_time = 6.0
+                    self.throttle_set = float(0.0359)
 
         else:
             print('Phys')
@@ -186,7 +196,6 @@ class FsdEnv(gym.Env):
     def callback_cones(self, data_pt_cloud):
         self.obs_cones = list(point_cloud2.read_points(data_pt_cloud, skip_nans=True, field_names=("x", "y", "probability_blue", "probability_yellow", "probability_orange", "probability_other")))
         
-
     def callback_cones_phys(self, data_cones):
         self.phys_cones = data_cones
 
@@ -270,11 +279,15 @@ class FsdEnv(gym.Env):
 
             # Send command to sim for running time
             while (rospy.get_time() - seconds_start_step) < self.running_step:
-                # Send higher throttle command when accelerating at start
-                if self.running_step*self.cnt_step < self.throttle_start_time:
-                    next_action.throttle.data = self.throttle_start
-                else:
-                    next_action.throttle.data = self.throttle_set
+                if THROTTLE_USE_EXPERT == 1: 
+                    temp = self.pp_expert.get_expert_throttle()
+                    next_action.throttle.data = temp[0]
+                else: 
+                    # Send higher throttle command when accelerating at start
+                    if self.running_step*self.cnt_step < self.throttle_start_time:
+                        next_action.throttle.data = self.throttle_start
+                    else:
+                        next_action.throttle.data = self.throttle_set
 
                 self.cmd_airl.publish(next_action)
 
@@ -313,7 +326,7 @@ class FsdEnv(gym.Env):
         # Update variables
         self.cnt_step += 1
         self.observation_prev = observation
-        print("STATE: {}".format(state))
+        #print("STATE: {}".format(state))
 
         return state, reward, done, {}
 

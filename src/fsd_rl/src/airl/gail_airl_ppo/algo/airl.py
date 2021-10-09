@@ -4,7 +4,8 @@ import torch.nn.functional as F
 from torch.optim import Adam
 
 from .ppo import PPO
-from ..network import AIRLDiscrim
+from ..network import AIRLDiscrim, StateIndependentPolicy
+from ..utils import disable_gradient
 
 
 class AIRL(PPO):
@@ -101,3 +102,23 @@ class AIRL(PPO):
                 acc_exp = (logits_exp > 0).float().mean().item()
             writer.add_scalar('stats/acc_pi', acc_pi, self.learning_steps)
             writer.add_scalar('stats/acc_exp', acc_exp, self.learning_steps)
+
+class AIRLExpert(PPO):
+    def __init__(self, state_shape, action_shape, device, path, units_actor=(64, 64)):
+
+        self.actor = StateIndependentPolicy(
+            state_shape=state_shape,
+            action_shape=action_shape,
+            hidden_units=units_actor,
+            hidden_activation=nn.Tanh()
+        ).to(device)
+
+        if torch.cuda.is_available():
+            map_location=lambda storage, loc: storage.cuda()
+        else:
+            map_location='cpu'
+
+        self.actor.load_state_dict(torch.load(path, map_location=map_location))
+
+        disable_gradient(self.actor)
+        self.device = device

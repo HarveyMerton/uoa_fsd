@@ -8,7 +8,7 @@ from datetime import datetime
 
 from gail_airl_ppo.utils import log_make
 from gail_airl_ppo.env import make_env
-from gail_airl_ppo.algo import SACExpert
+from gail_airl_ppo.algo import SACExpert, AIRLExpert
 from gail_airl_ppo.connections import PPExpert, PhysicalConnection, SimConnection
 from std_msgs.msg import Int16
 
@@ -20,6 +20,13 @@ def run(args):
     # IF using SAC as the expert
     if args.algo == 'sac':
         algo = SACExpert(
+            state_shape=env.observation_space.shape,
+            action_shape=env.action_space.shape,
+            device=torch.device("cuda" if args.cuda else "cpu"),
+            path=args.weight
+        )
+    elif args.algo == 'airl': 
+        algo = AIRLExpert(
             state_shape=env.observation_space.shape,
             action_shape=env.action_space.shape,
             device=torch.device("cuda" if args.cuda else "cpu"),

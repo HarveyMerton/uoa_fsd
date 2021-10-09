@@ -25,6 +25,9 @@ class PPExpert():
     ### FUNCTIONS ###
     def get_expert_action(self):
         return np.array([self.obs_cmd.steering_angle.data])
+    
+    def get_expert_throttle(self): 
+        return np.array([self.obs_cmd.throttle.data])
 
 # Connection to simulator
 class SimConnection():

@@ -163,7 +163,7 @@ class VehiclePositionCheck:
             is_right_front = is_inside(self.get_trans("right_front_wheel"), self.polygon_outside, self.polygon_inside)
             is_right_rear = is_inside(self.get_trans("right_rear_wheel"), self.polygon_outside, self.polygon_inside)
             is_left_rear = is_inside(self.get_trans("left_rear_wheel"), self.polygon_outside, self.polygon_inside)
-            return is_left_front and is_right_front and is_right_rear and is_left_rear # Set to OR for only one wheel having to be inside track
+            return is_left_front or is_right_front or is_right_rear or is_left_rear # Set to OR for only one wheel having to be inside track, AND for all
         elif self.mission == 'acceleration':
             is_right_from_left_cones = self.is_car_right_from_line(self.cones_left)
             is_left_from_right_cones = self.is_car_left_from_line(self.cones_right)

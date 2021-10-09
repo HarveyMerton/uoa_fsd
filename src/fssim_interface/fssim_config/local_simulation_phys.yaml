@@ -31,8 +31,8 @@ pkg_config_storage: fssim_interface # If relative path is given in following con
 repetitions:
 #- {sensors_config_file: fssim_config/sensors/sensors_1_physical.yaml, track_name: physical.sdf, autonomous_stack: }
 #- {sensors_config_file: fssim_config/sensors/sensors_1_physical.yaml, track_name: phys_straight.sdf, autonomous_stack: }
-#- {sensors_config_file: fssim_config/sensors/sensors_1_physical.yaml, track_name: phys_L.sdf, autonomous_stack: }
-- {sensors_config_file: fssim_config/sensors/sensors_1_physical.yaml, track_name: phys_R_tight.sdf, autonomous_stack: }
+- {sensors_config_file: fssim_config/sensors/sensors_1_physical.yaml, track_name: phys_L.sdf, autonomous_stack: }
+#- {sensors_config_file: fssim_config/sensors/sensors_1_physical.yaml, track_name: phys_R_tight.sdf, autonomous_stack: }
 #- {sensors_config_file: fssim_config/sensors/sensors_1_physical.yaml, track_name: phys_R_loose.sdf, autonomous_stack: }
 
 # Checks which must be true in order to automatically press RES GO

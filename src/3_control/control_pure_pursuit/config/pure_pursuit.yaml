@@ -1,11 +1,11 @@
 velocity_estimate_topic_name: /estimation/velocity_estimation/velocity_estimate
 slam_map_topic_name: /estimation/slam/map
 slam_state_topic_name: /estimation/slam/state
-#control_command_topic_name: /control/pure_pursuit/control_command # To get car to move
-control_command_topic_name: /control/pure_pursuit/control_command_expert # To collect data for IL alg
+#control_command_topic_name: /control/pure_pursuit/control_command # To get car to follow centreline perfectly
+control_command_topic_name: /control/pure_pursuit/control_command_expert # To collect data for IL alg and to provide expert throttle
 center_line_topic_name: /control/pure_pursuit/center_line
 
-max_speed: 4 #4  # [m/s]
+max_speed: 7 # [m/s]
 
 node_rate: 10   # [Herz]
 
