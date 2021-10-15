@@ -1,4 +1,4 @@
-Code to accompany Harvey Merton and Thomas Delamore's final year research project at UoA (see: XXX #paper location#). This code is built off various repositories but mostly the FSSIM and fsd_skeleton repositories by AMZ Driverless. This README file is based off the README in the later repository as this repository forms the higher-level structure of the workspace.
+Code to accompany Harvey Merton and Thomas Delamore's final year research project at UoA (see: XXX #paper location#). This code is built off various repositories but mostly the FSSIM (https://github.com/AMZ-Driverless/fssim) and fsd_skeleton (https://github.com/AMZ-Driverless/fsd_skeleton) repositories by AMZ Driverless. This README file is based off the README in the later repository as this repository forms the higher-level structure of the workspace.
 
 
 # Repository organisation
