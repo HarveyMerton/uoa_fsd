@@ -1,0 +1,10 @@
+sensor_msgs/Image left_image
+sensor_msgs/Image right_image
+cares_msgs/StereoCameraInfo stereo_info
+
+sensor_msgs/Image image
+sensor_msgs/Image depth_image
+sensor_msgs/CameraInfo camera_info
+---
+uint8[] ids
+geometry_msgs/TransformStamped[] transforms

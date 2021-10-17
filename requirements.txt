@@ -13,7 +13,12 @@ pyyaml==5.4.1
 distro==1.6.0 
 rospkg==1.3.0
 defusedxml==0.7.1
+PySide2==5.15.2
 
 
 # sudo apt-get install 
-# ros-kinetic-rqt-multiplot
+# ros-melodic-rqt-multiplot
+#ros-melodic-rosserial-arduino
+# ros-melodic-rosserial
+#pyserial
+#ros-melodic-tf2-sensor-msgs

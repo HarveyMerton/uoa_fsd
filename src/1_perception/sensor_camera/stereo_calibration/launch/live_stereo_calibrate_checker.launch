@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<launch>
+    <!--Save images and calibration data too folder - default "" = ~/calibration_images/M_D/N-->
+    <arg name="save_directory" default=""/>
+
+    <!--Image topic names-->
+    <arg name="camera_left"  default="/stereo_pair/left/image_color"/>
+    <arg name="camera_right" default="/stereo_pair/right/image_color"/>
+
+    <!--Number of corners-->
+    <arg name="board_width"   default="7"/>
+    <arg name="board_height"  default="6"/>
+    <arg name="square_length" default="108.0"/><!-- mm-->
+    <arg name="image_width"  default="1936"/>
+    <arg name="image_height" default="1216"/>
+
+    <!--Calibration modes-->
+    <!--0 Checker-->
+    <!--1 Charuco-->
+    <arg name="method" default="0"/>
+
+    <!--Difference Threshold-->
+    <arg name="threshold" default="25"/><!--px-->
+
+    <node name="stereo_calibration_node" pkg="stereo_calibration" type="stereo_calibration_node" output="screen">
+        <param name ="save_directory"  value="$(arg save_directory)"/>
+
+        <param name ="camera_left"  value="$(arg camera_left)"/>
+        <param name ="camera_right" value="$(arg camera_right)"/>
+
+        <param name ="board_width"  value="$(arg board_width)"/>
+        <param name ="board_height" value="$(arg board_height)"/>
+        <param name ="square_length" value="$(arg square_length)"/>
+
+        <param name ="image_width"  value="$(arg image_width)"/>
+        <param name ="image_height" value="$(arg image_height)"/>
+
+        <param name ="method" value="$(arg method)"/>
+
+        <param name ="threshold" value="$(arg threshold)"/>
+    </node>
+</launch>

@@ -6,14 +6,16 @@ import rospy
 
 from datetime import datetime
 
-from gail_airl_ppo.utils import PPExpert, log_make
+from gail_airl_ppo.utils import log_make
 from gail_airl_ppo.env import make_env
-from gail_airl_ppo.algo import SACExpert
+from gail_airl_ppo.algo import SACExpert, AIRLExpert
+from gail_airl_ppo.connections import PPExpert, PhysicalConnection, SimConnection
+from std_msgs.msg import Int16
 
 from collections import namedtuple
 
 def run(args):
-    env = make_env(args.env_id)
+    env = make_env(args.env_id, sim=args.sim)
 
     # IF using SAC as the expert
     if args.algo == 'sac':
@@ -23,12 +25,18 @@ def run(args):
             device=torch.device("cuda" if args.cuda else "cpu"),
             path=args.weight
         )
-    else:
-        algo = False
+    elif args.algo == 'airl': 
+        algo = AIRLExpert(
+            state_shape=env.observation_space.shape,
+            action_shape=env.action_space.shape,
+            device=torch.device("cuda" if args.cuda else "cpu"),
+            path=args.weight
+        )
 
     # Create logfile
     file_log = open(log_make_inference(args), "a")
-    file_log.writelines(['Step_num', ' ', 'Done_flag', ' ', 'Time_total', ' ', 'Action', ' ', 'Action_expert', '\n'])
+    file_log.writelines(['Step_num', ' ', 'Done_flag', ' ', 'Time_total', ' ', 'Action', ' ', 'Action other (expert for sim, desired for physical) ', '\n'])
+    #file_log.writelines(['Step_num', ' ', 'Done_flag', ' ', 'Time_total', ' ', 'Action',' ','% Total Cones Passed', ' ', 'Action other (expert for sim otherwise physical) ', '\n'])
 
     # Set variables
     cnt_step = 0  # Time step counter
@@ -39,30 +47,38 @@ def run(args):
     np.random.seed(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
+    state = env.reset()
 
+    # Initialise expert and
+    # subscribe to actually executed actions (accounts for env limits)
     if args.sim:
         pp_expert = PPExpert()  # Expert for action comparison
-        state = env.reset()
+        sim_system = SimConnection()  # Simulated action
     else:
-        # TODO physical initial state
-        state = None
+        phys_system = PhysicalConnection()  # Physical action
+
 
     while True:
         cnt_step += 1
 
         # Perform action
-        action = algo.exploit(state)
+        action = algo.exploit(state)  # Select action
 
-        if args.sim: # In simulation
-            next_state, _, done, _ = env.step(action)
-            action_expert = pp_expert.get_expert_action()  # Get expert action for comparison
+        if args.sim:  # In simulation
+            next_state, _, done, _ = env.step(action)  # Take step in simulated environment
+            action_actual = sim_system.get_sim_sa()  # Get actually executed sa
+            action_other = pp_expert.get_expert_action()  # Get expert action for comparison
+            #percentage_cones = env.helper_pass_cone_count() # Get percentage of passed cones
         else:  # In physical world
-            # TODO physical step
-            #next_state, _, done, _ = env.step(action) # HERE
-            action_expert = None
+            next_state, _, done, _ = env.step(action)  # Take step in real environment
+            action_actual = phys_system.get_physical_sa()  # Get current physical steering angle
+            action_other = phys_system.get_physical_sa_desired()  # Get commanded physical steering angle for comparison (CAUSES CODE TO PAUSE)
 
         # Write to log file
-        file_log.writelines([str(cnt_step), ' ', str(done), ' ', str(cnt_step * step_size), ' ', str(action), ' ', str(action_expert), ' ', '\n'])
+        action_actual = action_actual[0]
+        action_other = action_other[0]
+        file_log.writelines([str(cnt_step), ' ', str(done), ' ', str(cnt_step * step_size), ' ', str(action_actual), ' ', str(action_other), ' ', '\n'])
+        #file_log.writelines([str(cnt_step), ' ', str(done), ' ', str(cnt_step * step_size), ' ', str(action_actual), ' ',str(percentage_cones),' ', str(action_other), ' ', '\n'])
 
         # Update state
         state = next_state
@@ -83,7 +99,7 @@ def log_make_inference(args):
 
     return file_path_name
 
-def run_inference_init(sim_ip, algo_ip, weight_ip, env_id_ip, cuda_ip): #, log_ip):
+def run_inference_init(sim_ip, algo_ip, weight_ip, env_id_ip, cuda_ip):
     args = namedtuple("args", "sim algo weight env_id cuda")
 
     args.sim = sim_ip
@@ -96,4 +112,4 @@ def run_inference_init(sim_ip, algo_ip, weight_ip, env_id_ip, cuda_ip): #, log_i
 
 if __name__ == '__main__':
     weights_path = os.path.join(os.path.dirname(__file__), 'airl/weights/Fsd-v0.pth')
-    run_inference_init(True, 'sac', 'weights/Fsd-v0.pth', 'Fsd-v0', False) #, 'logs')
+    run_inference_init(True, 'sac', 'weights/Fsd-v0.pth', 'Fsd-v0', False)
