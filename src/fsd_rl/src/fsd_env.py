@@ -48,7 +48,7 @@ STEER_ANG_MIN = -0.4
 STEER_ANG_MAX = 0.4
 STEER_ANG_RATE_MAX = 112.5 # Deg/s
 
-THROTTLE_USE_EXPERT = 1 # 1 = use PPExpert for throttle, 0 = use fixed values 
+THROTTLE_USE_EXPERT = 0 # 1 = use PPExpert for throttle, 0 = use fixed values 
 
 C_X = -0.10  # X position of camera in chassis CS (m)
 C_Y = 0  # Y position of camera in chassis CS (m)

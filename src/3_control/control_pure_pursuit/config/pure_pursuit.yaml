@@ -5,7 +5,7 @@ slam_state_topic_name: /estimation/slam/state
 control_command_topic_name: /control/pure_pursuit/control_command_expert # To collect data for IL alg and to provide expert throttle
 center_line_topic_name: /control/pure_pursuit/center_line
 
-max_speed: 7 # [m/s]
+max_speed: 4 # [m/s]
 
 node_rate: 10   # [Herz]
 
