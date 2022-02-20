@@ -1,4 +1,15 @@
-Code to accompany Harvey Merton and Thomas Delamore's final year research project at UoA (see: XXX #paper location#). This code is built off various repositories but mostly the FSSIM (https://github.com/AMZ-Driverless/fssim) and fsd_skeleton (https://github.com/AMZ-Driverless/fsd_skeleton) repositories by AMZ Driverless. This README file is based off the README in the later repository as this repository forms the higher-level structure of the workspace.
+Code to accompany Harvey Merton and Thomas Delamore's final year research project at UoA (see: XXX #paper reference#). This code is built off various repositories but mostly the FSSIM and fsd_skeleton repositories by AMZ Driverless, ku2482's gail-airl-ppo RL implementation and The University of Auckland's CARES stereo camera repositories. This README file is based off the README in the fsd_skeleton repository as this repository forms the higher-level structure of the workspace.
+
+
+**Original repositories:**
+FSSIM: https://github.com/AMZ-Driverless/fssim
+fsd_skeleton: https://github.com/AMZ-Driverless/fsd_skeleton
+gail-airl-ppo: https://github.com/ku2482/gail-airl-ppo.pytorch
+
+CARES  custom  ROS  messages: https://github.com/UoA-CARES/cares_msgs
+Pylon stereo camera image publishing:https://github.com/UoA-CARES/pylon_camera
+Stereo  camera  calibration: https://github.com/UoA-CARES/stereo_calibration
+Stereo  camera  marker  detection: https://github.com/maraatech/aruco_detector
 
 
 # Repository organisation
