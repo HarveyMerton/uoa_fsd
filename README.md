@@ -1,4 +1,4 @@
-Code to accompany Harvey Merton and Thomas Delamore's final year research project at UoA (see: XXX #paper reference#). This code is built off various repositories but mostly the FSSIM and fsd_skeleton repositories by AMZ Driverless, ku2482's gail-airl-ppo RL implementation and The University of Auckland's CARES stereo camera repositories. This README file is based off the README in the fsd_skeleton repository as this repository forms the higher-level structure of the workspace.
+Code to accompany Harvey Merton and Thomas Delamore's final year research project at UoA (please reference this paper if using in an academic context: https://arxiv.org/abs/2401.02903). This code is built off various repositories but mostly the FSSIM and fsd_skeleton repositories by AMZ Driverless, ku2482's gail-airl-ppo RL implementation and The University of Auckland's CARES stereo camera repositories. This README file is based off the README in the fsd_skeleton repository as this repository forms the higher-level structure of the workspace.
 
 
 **Original repositories:**
