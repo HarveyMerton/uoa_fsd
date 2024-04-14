@@ -1,6 +1,6 @@
 Code to accompany Harvey Merton and Thomas Delamore's final year research project at UoA. Please reference the following paper if you're using this code in an academic context:
 
-> H. Merton, T. Delamore, K. Stol, and H. Williams, "Deep Reinforcement Learning for Local Path Following of an Autonomous Formula SAE Vehicle," in *Australasian Conference on Robotics and Automation*, Sydney, Australia: Australian Robotics and Automation Association, Dec. 2023. ISBN 978-0-6455655-2-2, ISSN: 1448-2053. Available: [ACRA 2023 Proceedings](https://ssl.linklings.net/conferences/acra/acra2023_proceedings/views/at_a_glance.html)
+> H. Merton, T. Delamore, K. Stol, and H. Williams, "Deep Reinforcement Learning for Local Path Following of an Autonomous Formula SAE Vehicle," in *Australasian Conference on Robotics and Automation*, Sydney, Australia: Australian Robotics and Automation Association, Dec. 2023. ISBN 978-0-6455655-2-2, ISSN: 1448-2053. Available: https://ssl.linklings.net/conferences/acra/acra2023_proceedings/views/at_a_glance.html
 
 
 This code is built off various repositories but mostly the FSSIM and fsd_skeleton repositories by AMZ Driverless, ku2482's gail-airl-ppo RL implementation and The University of Auckland's CARES stereo camera repositories. This README file is based off the README in the fsd_skeleton repository as this repository forms the higher-level structure of the workspace.
